@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Awesome go-echarts</title>
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+</head>
+
+<body><div class="container">
+    <div class="item" id="hgRNSVJeKhQg" style="width:900px;height:500px;"></div>
+</div><script type="text/javascript">
+    "use strict";
+    let goecharts_hgRNSVJeKhQg = echarts.init(document.getElementById('hgRNSVJeKhQg'), "white", { renderer: "canvas" });
+    let option_hgRNSVJeKhQg = {"color":["#5470c6","#91cc75","#fac858","#ee6666","#73c0de","#3ba272","#fc8452","#9a60b4","#ea7ccc"],"dataZoom":[{"type":"slider","end":100,"xAxisIndex":[0]},{"type":"inside","end":100,"xAxisIndex":[0]}],"grid":[{"left":"10%","top":"15%","right":"10%","bottom":"15%"}],"legend":{"show":true,"top":"bottom"},"series":[{"name":"Candlestick","type":"candlestick","data":[{"value":[100,103,98,105]},{"value":[103,106,101,108]},{"value":[106,106.1,102,110]},{"value":[105,106,90,107]},{"value":[106,120,106,120]},{"value":[120,123,118,125]},{"value":[123,126,121,128]},{"value":[126,128,124,130]},{"value":[128,130,126,132]},{"value":[130,133,128,135]}],"itemStyle":{"color":"#00da3c","color0":"#ec0000","borderColor":"#008F28","borderColor0":"#8A0000"},"markLine":{"data":[{"name":"Marubozu Level (120.00)","yAxis":120},{"name":"Three White Soldiers Level (123.00)","yAxis":123},{"name":"Three White Soldiers Level (126.00)","yAxis":126}]},"markPoint":{"data":[{"name":"Doji\nPos: 2\nPrice: 106.10\nStrength: 0.7","type":"max"},{"name":"Spinning Top\nPos: 2\nPrice: 106.10\nStrength: 0.5","type":"max"},{"name":"Marubozu\nPos: 4\nPrice: 120.00\nStrength: 0.9","type":"max"},{"name":"Three White Soldiers\nPos: 5\nPrice: 123.00\nStrength: 0.9","type":"max"},{"name":"Three White Soldiers\nPos: 6\nPrice: 126.00\nStrength: 0.9","type":"max"}],"label":{"show":true,"color":"#333","fontSize":10,"position":"top"}}}],"title":{"text":"🧪 Test Chart with Pattern Markers","subtext":"Detected 5 candlestick patterns with automatic recognition","left":"center"},"toolbox":{},"tooltip":{"show":true,"trigger":"axis","axisPointer":{"type":"cross"}},"xAxis":[{"type":"category","data":["05-12","05-13","05-14","05-15","05-16","05-17","05-18","05-19","05-20","05-21"],"splitNumber":20}],"yAxis":[{"type":"value","scale":true}]}
+
+    goecharts_hgRNSVJeKhQg.setOption(option_hgRNSVJeKhQg);
+</script>
+<style>
+    .container {margin-top:30px; display: flex;justify-content: center;align-items: center;}
+    .item {margin: auto;}
+</style>
+
+<script>
+// Pattern Recognition Enhancement
+// 形态识别增强
+window.addEventListener('load', function() {
+    // Wait for ECharts to be ready
+    // 等待 ECharts 准备就绪
+    setTimeout(function() {
+        try {
+            // Get the chart instance
+            // 获取图表实例
+            var chartDom = document.querySelector('div[_echarts_instance_]');
+            if (!chartDom) {
+                console.log('Chart DOM not found');
+                return;
+            }
+
+            var chartInstance = echarts.getInstanceByDom(chartDom);
+            if (!chartInstance) {
+                console.log('Chart instance not found');
+                return;
+            }
+
+            console.log('Adding pattern markers to chart...');
+
+            // Get current chart options
+            // 获取当前图表选项
+            var option = chartInstance.getOption();
+
+            // Create mark points for patterns
+            // 为形态创建标记点
+            var markPointData = [
+                {
+                    name: 'Doji',
+                    coord: [2, 108.22],
+                    value: '0.7',
+                    itemStyle: {
+                        color: '#ffaa00'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: 'Doji\nS:0.7',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    }
+                },
+                {
+                    name: 'Spinning Top',
+                    coord: [2, 108.22],
+                    value: '0.5',
+                    itemStyle: {
+                        color: '#ffaa00'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: 'Spinning Top\nS:0.5',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    }
+                },
+                {
+                    name: 'Marubozu',
+                    coord: [4, 122.40],
+                    value: '0.9',
+                    itemStyle: {
+                        color: '#9900cc'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: 'Marubozu\nS:0.9',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        color: '#9900cc',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        borderColor: '#9900cc',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    }
+                },
+                {
+                    name: 'Three White Soldiers',
+                    coord: [5, 125.46],
+                    value: '0.9',
+                    itemStyle: {
+                        color: '#00da3c'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: 'Three White Soldiers\nS:0.9',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    }
+                },
+                {
+                    name: 'Three White Soldiers',
+                    coord: [6, 128.52],
+                    value: '0.9',
+                    itemStyle: {
+                        color: '#00da3c'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: 'Three White Soldiers\nS:0.9',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    }
+                }
+            ];
+
+            // Add mark points to the candlestick series
+            // 将标记点添加到蜡烛图系列
+            if (option.series && option.series[0]) {
+                if (!option.series[0].markPoint) {
+                    option.series[0].markPoint = {};
+                }
+                option.series[0].markPoint.data = markPointData;
+                option.series[0].markPoint.symbol = 'circle';
+                option.series[0].markPoint.symbolSize = 8;
+
+                console.log('Added', markPointData.length, 'pattern markers');
+
+                // Update the chart with pattern markers
+                // 使用形态标记更新图表
+                chartInstance.setOption(option, true);
+            }
+
+            // Add pattern legend
+            // 添加形态图例
+            addPatternLegend();
+
+        } catch (e) {
+            console.error('Error adding pattern markers:', e);
+        }
+    }, 1500); // Increased timeout to ensure chart is fully loaded
+});
+
+// Add pattern legend to the page
+// 在页面上添加形态图例
+function addPatternLegend() {
+    var legendHTML = '<div style="position: fixed; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">' +
+        '<h4 style="margin: 0 0 10px 0; color: #333;">Detected Patterns (检测到的形态)</h4>';
+
+    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ffaa00; margin-right: 5px;"></span>Doji (1)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ffaa00; margin-right: 5px;"></span>Spinning Top (1)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #9900cc; margin-right: 5px;"></span>Marubozu (1)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #00da3c; margin-right: 5px;"></span>Three White Soldiers (2)</div>';\n    legendHTML += '</div>';
+    document.body.insertAdjacentHTML('beforeend', legendHTML);
+    console.log('Pattern legend added');
+}
+</script>
+</body>
+</html>

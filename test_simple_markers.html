@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Simple Pattern Markers Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div id="chart" style="width: 100%; height: 600px;"></div>
+    
+    <script>
+        // Initialize the chart
+        var chartDom = document.getElementById('chart');
+        var myChart = echarts.init(chartDom);
+        
+        // Sample candlestick data
+        var data = [
+            [100, 103, 98, 105],   // [open, close, low, high]
+            [103, 106, 101, 108],
+            [106, 106.1, 102, 110], // Doji pattern
+            [105, 106, 90, 107],    // Hammer pattern
+            [106, 120, 106, 120],   // Marubozu pattern
+            [120, 123, 118, 125],
+            [123, 126, 121, 128],
+            [126, 128, 124, 130],
+            [128, 130, 126, 132],
+            [130, 133, 128, 135]
+        ];
+        
+        var xAxisData = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10'];
+        
+        var option = {
+            title: {
+                text: 'Candlestick Chart with Pattern Markers',
+                left: 'center'
+            },
+            xAxis: {
+                type: 'category',
+                data: xAxisData
+            },
+            yAxis: {
+                type: 'value',
+                scale: true
+            },
+            series: [{
+                name: 'Candlestick',
+                type: 'candlestick',
+                data: data,
+                itemStyle: {
+                    color: '#00da3c',
+                    color0: '#ec0000',
+                    borderColor: '#008F28',
+                    borderColor0: '#8A0000'
+                },
+                markPoint: {
+                    data: [
+                        {
+                            name: 'Doji Pattern',
+                            coord: [2, 110], // Position at Day 3, price 110
+                            itemStyle: {
+                                color: '#ffaa00'
+                            },
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: 'Doji\\nS:0.7',
+                                fontSize: 12,
+                                fontWeight: 'bold',
+                                color: '#ffaa00',
+                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                borderColor: '#ffaa00',
+                                borderWidth: 1,
+                                borderRadius: 3,
+                                padding: [3, 5]
+                            }
+                        },
+                        {
+                            name: 'Hammer Pattern',
+                            coord: [3, 107], // Position at Day 4, price 107
+                            itemStyle: {
+                                color: '#00da3c'
+                            },
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: 'Hammer\\nS:0.8',
+                                fontSize: 12,
+                                fontWeight: 'bold',
+                                color: '#00da3c',
+                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                borderColor: '#00da3c',
+                                borderWidth: 1,
+                                borderRadius: 3,
+                                padding: [3, 5]
+                            }
+                        },
+                        {
+                            name: 'Marubozu Pattern',
+                            coord: [4, 122], // Position at Day 5, price 122
+                            itemStyle: {
+                                color: '#9900cc'
+                            },
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: 'Marubozu\\nS:0.9',
+                                fontSize: 12,
+                                fontWeight: 'bold',
+                                color: '#9900cc',
+                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                borderColor: '#9900cc',
+                                borderWidth: 1,
+                                borderRadius: 3,
+                                padding: [3, 5]
+                            }
+                        }
+                    ],
+                    symbol: 'circle',
+                    symbolSize: 10
+                }
+            }],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    start: 0,
+                    end: 100
+                },
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 100
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+        
+        // Add pattern legend
+        var legendHTML = '<div style="position: fixed; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">' +
+            '<h4 style="margin: 0 0 10px 0; color: #333;">Detected Patterns</h4>' +
+            '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ffaa00; margin-right: 5px;"></span>Doji (1)</div>' +
+            '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #00da3c; margin-right: 5px;"></span>Hammer (1)</div>' +
+            '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #9900cc; margin-right: 5px;"></span>Marubozu (1)</div>' +
+            '</div>';
+        document.body.insertAdjacentHTML('beforeend', legendHTML);
+        
+        console.log('Chart initialized with pattern markers');
+    </script>
+</body>
+</html>

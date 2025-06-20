@@ -1,0 +1,411 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Awesome go-echarts</title>
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+</head>
+
+<body><div class="container">
+    <div class="item" id="aVEOOWINwvEc" style="width:900px;height:500px;"></div>
+</div><script type="text/javascript">
+    "use strict";
+    let goecharts_aVEOOWINwvEc = echarts.init(document.getElementById('aVEOOWINwvEc'), "white", { renderer: "canvas" });
+    let option_aVEOOWINwvEc = {"color":["#5470c6","#91cc75","#fac858","#ee6666","#73c0de","#3ba272","#fc8452","#9a60b4","#ea7ccc"],"dataZoom":[{"type":"slider","end":100,"xAxisIndex":[0]},{"type":"inside","end":100,"xAxisIndex":[0]}],"grid":[{"left":"10%","top":"15%","right":"10%","bottom":"15%"}],"legend":{"show":true,"top":"bottom"},"series":[{"name":"Candlestick","type":"candlestick","data":[{"value":[100,103,98,105]},{"value":[103,106,101,108]},{"value":[106,109,104,110]},{"value":[109,109.3,104,114]},{"value":[109,104,102,111]},{"value":[104,105,92,106]},{"value":[105,122,105,122]},{"value":[122,126,120,128]},{"value":[126,128,125,142]},{"value":[128,131,127,132]},{"value":[133,122,120,134]},{"value":[122,117,115,124]},{"value":[117,112,110,119]},{"value":[112,107,105,113]},{"value":[104,103,102,105]},{"value":[105,116,104,118]},{"value":[116,123,115,124]},{"value":[121,129,120,130]},{"value":[127,135,126,136]},{"value":[135,140,133,142]},{"value":[140,141,133,147]},{"value":[141,147,140,148]},{"value":[149,149.2,148,150]},{"value":[148,141,138,149]},{"value":[141,142,138,145]}],"itemStyle":{"color":"#00da3c","color0":"#ec0000","borderColor":"#008F28","borderColor0":"#8A0000"},"markLine":{"data":[{"name":"Marubozu Level (122.00)","yAxis":122},{"name":"Bearish Engulfing Level (122.00)","yAxis":122},{"name":"Dark Cloud Cover Level (122.00)","yAxis":122}]},"markPoint":{"data":[{"name":"Doji\nPos: 3\nPrice: 109.30\nStrength: 0.7","type":"max"},{"name":"Spinning Top\nPos: 3\nPrice: 109.30\nStrength: 0.5","type":"max"},{"name":"Marubozu\nPos: 6\nPrice: 122.00\nStrength: 0.9","type":"max"},{"name":"Doji\nPos: 20\nPrice: 141.00\nStrength: 0.7","type":"max"},{"name":"Spinning Top\nPos: 20\nPrice: 141.00\nStrength: 0.5","type":"max"}],"label":{"show":true,"color":"#333","fontSize":10,"position":"top"}}}],"title":{"text":"🎯 Candlestick Chart with Precise Pattern Position Markers","subtext":"Detected 22 candlestick patterns with automatic recognition","left":"center"},"toolbox":{},"tooltip":{"show":true,"trigger":"axis","axisPointer":{"type":"cross"}},"xAxis":[{"type":"category","data":["04-27","04-28","04-29","04-30","05-01","05-02","05-03","05-04","05-05","05-06","05-07","05-08","05-09","05-10","05-11","05-12","05-13","05-14","05-15","05-16","05-17","05-18","05-19","05-20","05-21"],"splitNumber":20}],"yAxis":[{"type":"value","scale":true}]}
+
+    goecharts_aVEOOWINwvEc.setOption(option_aVEOOWINwvEc);
+</script>
+<style>
+    .container {margin-top:30px; display: flex;justify-content: center;align-items: center;}
+    .item {margin: auto;}
+</style>
+
+<script>
+// Pattern Recognition Enhancement
+// 形态识别增强
+window.addEventListener('load', function() {
+    // Wait for ECharts to be ready
+    // 等待 ECharts 准备就绪
+    setTimeout(function() {
+        try {
+            // Get the chart instance
+            // 获取图表实例
+            var chartDom = document.querySelector('div[_echarts_instance_]');
+            if (!chartDom) return;
+
+            var chartInstance = echarts.getInstanceByDom(chartDom);
+            if (!chartInstance) return;
+
+            // Get current chart options
+            // 获取当前图表选项
+            var option = chartInstance.getOption();
+
+            // Add pattern annotations
+            // 添加形态注释
+            var patternAnnotations = [
+                {
+                    type: 'text',
+                    position: [3, 111.49],
+                    style: {
+                        text: 'Doji\nStrength: 0.7',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [3, 111.49],
+                    style: {
+                        text: 'Spinning Top\nStrength: 0.5',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [6, 124.44],
+                    style: {
+                        text: 'Marubozu\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#9900cc',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#9900cc',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [20, 143.82],
+                    style: {
+                        text: 'Doji\nStrength: 0.7',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [20, 143.82],
+                    style: {
+                        text: 'Spinning Top\nStrength: 0.5',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [22, 152.18],
+                    style: {
+                        text: 'Doji\nStrength: 0.7',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [22, 152.18],
+                    style: {
+                        text: 'Spinning Top\nStrength: 0.5',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [24, 144.84],
+                    style: {
+                        text: 'Spinning Top\nStrength: 0.5',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [3, 111.49],
+                    style: {
+                        text: 'Tweezer Bottoms\nStrength: 0.7',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [10, 124.44],
+                    style: {
+                        text: 'Bearish Engulfing\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#ec0000',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ec0000',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [10, 124.44],
+                    style: {
+                        text: 'Dark Cloud Cover\nStrength: 0.8',
+                        fontSize: 10,
+                        color: '#ec0000',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ec0000',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [20, 143.82],
+                    style: {
+                        text: 'Tweezer Bottoms\nStrength: 0.7',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [24, 144.84],
+                    style: {
+                        text: 'Tweezer Bottoms\nStrength: 0.7',
+                        fontSize: 10,
+                        color: '#ffaa00',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ffaa00',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [2, 111.18],
+                    style: {
+                        text: 'Three White Soldiers\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [4, 106.08],
+                    style: {
+                        text: 'Evening Star\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#ec0000',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ec0000',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [7, 128.52],
+                    style: {
+                        text: 'Three White Soldiers\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [12, 114.24],
+                    style: {
+                        text: 'Three Black Crows\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#ec0000',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ec0000',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [13, 109.14],
+                    style: {
+                        text: 'Three Black Crows\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#ec0000',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ec0000',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [17, 131.58],
+                    style: {
+                        text: 'Three White Soldiers\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [18, 137.70],
+                    style: {
+                        text: 'Three White Soldiers\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [19, 142.80],
+                    style: {
+                        text: 'Three White Soldiers\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#00da3c',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#00da3c',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                },
+                {
+                    type: 'text',
+                    position: [23, 143.82],
+                    style: {
+                        text: 'Evening Star\nStrength: 0.9',
+                        fontSize: 10,
+                        color: '#ec0000',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        borderColor: '#ec0000',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                        padding: [2, 4]
+                    },
+                    z: 100
+                }
+            ];
+
+            // Add annotations to the chart
+            // 将注释添加到图表
+            if (!option.graphic) {
+                option.graphic = [];
+            }
+            option.graphic = option.graphic.concat(patternAnnotations);
+
+            // Update the chart with pattern markers
+            // 使用形态标记更新图表
+            chartInstance.setOption(option, true);
+
+            // Add pattern legend
+            // 添加形态图例
+            addPatternLegend();
+
+        } catch (e) {
+            console.error('Error adding pattern markers:', e);
+        }
+    }, 1000);
+});
+
+// Add pattern legend to the page
+// 在页面上添加形态图例
+function addPatternLegend() {
+    var legendHTML = '<div style="position: fixed; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; z-index: 1000;">' +
+        '<h4 style="margin: 0 0 10px 0; color: #333;">Detected Patterns (检测到的形态)</h4>';
+
+    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ec0000; margin-right: 5px;"></span>Bearish Engulfing (1)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #00da3c; margin-right: 5px;"></span>Three White Soldiers (5)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ec0000; margin-right: 5px;"></span>Three Black Crows (2)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ffaa00; margin-right: 5px;"></span>Doji (3)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #9900cc; margin-right: 5px;"></span>Marubozu (1)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ffaa00; margin-right: 5px;"></span>Tweezer Bottoms (3)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ec0000; margin-right: 5px;"></span>Dark Cloud Cover (1)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ec0000; margin-right: 5px;"></span>Evening Star (2)</div>';\n    legendHTML += '<div style="margin: 2px 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #ffaa00; margin-right: 5px;"></span>Spinning Top (4)</div>';\n    legendHTML += '</div>';
+    document.body.insertAdjacentHTML('beforeend', legendHTML);
+}
+</script>
+</body>
+</html>
