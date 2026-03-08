@@ -77,22 +77,17 @@ func main() {
 
 	fmt.Println("🕯️  港股通 100 股 - 最近 30 天数据")
 	fmt.Println("=====================================")
-	fmt.Printf("数据源: Tsanghi(XHKG) + East Money\n")
+	fmt.Printf("数据源: Yahoo Finance (免费)\n")
 	fmt.Printf("输出: %s\n\n", output)
 
-	tsanghi := datasource.NewTsanghiClient(token)
-	eastmoney := datasource.NewEastMoneyKlineClient()
+	yahoo := datasource.NewYahooClient()
+	_ = token
 
 	results := make([]HKResult, 0, len(hk100))
 	for i, s := range hk100 {
 		var candles []*v1.Candlestick
 		var err error
-		// 1. 先试 Tsanghi XHKG
-		candles, err = tsanghi.Fetch(datasource.TsanghiXHKG, s.Code, &datasource.FetchOptions{Limit: 30, Order: 2})
-		if err != nil || len(candles) == 0 {
-			// 2. 备选 East Money
-			candles, err = eastmoney.FetchHK(s.Code, 30)
-		}
+		candles, err = yahoo.FetchHK(s.Code, 30)
 		results = append(results, HKResult{Stock: s, Candles: candles, Err: err})
 		if (i+1)%20 == 0 {
 			fmt.Printf("  已拉取 %d/%d\n", i+1, len(hk100))
@@ -194,7 +189,7 @@ tr:hover{background:#f8f9fa;}
 </head>
 <body>
 <h1>🕯️ 港股通 100 股 - 最近 30 天数据</h1>
-<p>数据来源: Tsanghi(XHKG) / 东方财富 | 生成时间: ` + time.Now().Format("2006-01-02 15:04:05") + `</p>
+<p>数据来源: Yahoo Finance (免费) | 生成时间: ` + time.Now().Format("2006-01-02 15:04:05") + `</p>
 
 <table>
 <thead><tr><th>排名</th><th>股票名称</th><th>代码</th><th>最新价</th><th>30日涨跌幅</th><th>30日最高</th><th>30日最低</th><th>数据</th></tr></thead>
@@ -208,7 +203,7 @@ tr:hover{background:#f8f9fa;}
 </div>
 
 <p style="margin-top:32px;color:#666;font-size:14px;">
-说明：前 10 只有数据的股票显示 K 线图。若数据为 ❌，请检查 Tsanghi token 或网络。
+说明：前 10 只有数据的股票显示 K 线图。
 </p>
 </body>
 </html>`

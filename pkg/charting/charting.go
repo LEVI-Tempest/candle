@@ -774,27 +774,56 @@ func (ek *EnhancedKline) MarkPatterns() {
 		return
 	}
 
-	// Create mark points for patterns using a simpler approach
-	// 使用更简单的方法为形态创建标记点
-	markPointData := make([]opts.MarkPointNameTypeItem, 0)
+	// Create precise coordinate mark points for each detected pattern
+	// 为每个检测到的形态创建精确坐标标记点
+	markPointData := make([]opts.MarkPointNameCoordItem, 0, len(ek.Patterns))
+	positionCount := make(map[int]int)
 
 	for _, pattern := range ek.Patterns {
-		// Add mark point for each pattern
-		// 为每个形态添加标记点
-		markPointData = append(markPointData, opts.MarkPointNameTypeItem{
-			Name: fmt.Sprintf("%s (%.1f)", pattern.Type, pattern.Strength),
-			Type: "max", // Use max as a placeholder
+		// Show only higher-confidence patterns to keep chart readable
+		// 仅展示高置信度形态，避免图表过度拥挤
+		if pattern.Strength < 0.8 {
+			continue
+		}
+		if pattern.Position < 0 || pattern.Position >= len(ek.Data) {
+			continue
+		}
+
+		date := time.Unix(ek.Data[pattern.Position].Timestamp, 0).Format("2006-01-02")
+		level := positionCount[pattern.Position]
+		positionCount[pattern.Position]++
+
+		// Lift labels slightly to avoid overlap when multiple patterns appear on one candle
+		// 同一根K线出现多个形态时，轻微抬高标签避免重叠
+		offsetFactor := 1.005 + float64(level)*0.008
+
+		markPointData = append(markPointData, opts.MarkPointNameCoordItem{
+			Name:       fmt.Sprintf("%s %s (%.1f)", getPatternDirectionTag(pattern.Type), pattern.Type, pattern.Strength),
+			Coordinate: []interface{}{date, pattern.Price * offsetFactor},
+			Value:      fmt.Sprintf("%.2f", pattern.Price),
+			Symbol:     "circle",
+			SymbolSize: 10,
+			ItemStyle: &opts.ItemStyle{
+				Color:       getPatternColor(pattern.Type),
+				BorderColor: getPatternColor(pattern.Type),
+				BorderWidth: 1,
+				Opacity:     0.9,
+			},
 		})
 	}
 
-	// Add mark points to the chart if any patterns were detected
-	// 如果检测到任何形态，将标记点添加到图表
+	// Add all pattern marks into the candlestick series
+	// 将所有形态标记点添加到蜡烛图序列
 	if len(markPointData) > 0 {
 		ek.Kline.SetSeriesOptions(
-			charts.WithMarkPointNameTypeItemOpts(markPointData[0]), // Add first pattern as example
+			charts.WithMarkPointNameCoordItemOpts(markPointData...),
 			charts.WithMarkPointStyleOpts(opts.MarkPointStyle{
 				Label: &opts.Label{
-					Show: opts.Bool(true),
+					Show:      opts.Bool(true),
+					Position:  "top",
+					FontSize:  9,
+					Color:     "#111111",
+					Formatter: "{b}",
 				},
 			}),
 		)
@@ -856,6 +885,23 @@ func getPatternSymbol(patternType string) string {
 	}
 }
 
+// getPatternDirectionTag returns a clear direction marker for each pattern
+// getPatternDirectionTag 返回每个形态的方向标记（看涨/看跌/中性）
+func getPatternDirectionTag(patternType string) string {
+	switch patternType {
+	// Bullish patterns (看涨形态)
+	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers",
+		"Dragonfly Doji", "Bullish Harami", "Rising Three Methods", "Rising Window":
+		return "↑看涨"
+	// Bearish patterns (看跌形态)
+	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows",
+		"Gravestone Doji", "Bearish Harami", "Falling Three Methods", "Falling Window":
+		return "↓看跌"
+	default:
+		return "→中性"
+	}
+}
+
 // CreateChart creates and configures the candlestick chart with patterns
 // 创建并配置带有形态的蜡烛图
 func (ek *EnhancedKline) CreateChart(title string) {
@@ -867,32 +913,95 @@ func (ek *EnhancedKline) CreateChart(title string) {
 	// 为图表准备数据
 	x := make([]string, len(ek.Data))
 	y := make([]opts.KlineData, len(ek.Data))
+	volume := make([]opts.BarData, len(ek.Data))
 
 	for i, candle := range ek.Data {
 		x[i] = time.Unix(candle.Timestamp, 0).Format("2006-01-02")
 		y[i] = opts.KlineData{
 			Value: []interface{}{candle.Open, candle.Close, candle.Low, candle.High},
 		}
+		volumeColor := "#ec0000"
+		if candle.Close >= candle.Open {
+			volumeColor = "#00da3c"
+		}
+		volume[i] = opts.BarData{
+			Value: candle.Volume,
+			ItemStyle: &opts.ItemStyle{
+				Color: volumeColor,
+			},
+		}
 	}
+
+	// Create dedicated lower panel for volume (xAxis[1], yAxis[1])
+	// 为成交量创建独立下方面板（xAxis[1], yAxis[1]）
+	ek.Kline.ExtendXAxis(opts.XAxis{
+		Type:      "category",
+		GridIndex: 1,
+		AxisLabel: &opts.AxisLabel{
+			Show: opts.Bool(false),
+		},
+		AxisTick: &opts.AxisTick{
+			Show: opts.Bool(false),
+		},
+	})
+	ek.Kline.ExtendYAxis(opts.YAxis{
+		Scale:       opts.Bool(true),
+		GridIndex:   1,
+		Name:        "Volume",
+		SplitNumber: 2,
+		AxisLabel: &opts.AxisLabel{
+			Show: opts.Bool(true),
+		},
+	})
 
 	// Configure chart options
 	// 配置图表选项
+	displayPatternCount := 0
+	for _, pattern := range ek.Patterns {
+		if pattern.Strength >= 0.8 {
+			displayPatternCount++
+		}
+	}
 	ek.Kline.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
 			Title:    title,
-			Subtitle: fmt.Sprintf("Detected %d patterns", len(ek.Patterns)),
+			Subtitle: fmt.Sprintf("Detected %d patterns | Shown %d (>=0.8)", len(ek.Patterns), displayPatternCount),
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			SplitNumber: 20,
-		}),
+			GridIndex:   0,
+		}, 0),
 		charts.WithYAxisOpts(opts.YAxis{
-			Scale: opts.Bool(true),
-		}),
+			Scale:     opts.Bool(true),
+			GridIndex: 0,
+		}, 0),
+		charts.WithGridOpts(
+			opts.Grid{
+				Left:         "8%",
+				Right:        "8%",
+				Top:          "10%",
+				Height:       "58%",
+				ContainLabel: opts.Bool(true),
+			},
+			opts.Grid{
+				Left:         "8%",
+				Right:        "8%",
+				Top:          "74%",
+				Height:       "16%",
+				ContainLabel: opts.Bool(true),
+			},
+		),
 		charts.WithDataZoomOpts(opts.DataZoom{
 			Type:       "slider",
 			Start:      0,
 			End:        100,
-			XAxisIndex: []int{0},
+			XAxisIndex: []int{0, 1},
+		}),
+		charts.WithDataZoomOpts(opts.DataZoom{
+			Type:       "inside",
+			Start:      0,
+			End:        100,
+			XAxisIndex: []int{0, 1},
 		}),
 		charts.WithTooltipOpts(opts.Tooltip{
 			Show:    opts.Bool(true),
@@ -907,9 +1016,20 @@ func (ek *EnhancedKline) CreateChart(title string) {
 	// 将数据添加到图表
 	ek.Kline.SetXAxis(x).AddSeries("Candlestick", y)
 
-	// Mark patterns on the chart
-	// 在图表上标记形态
+	// Mark patterns on candlestick series first, so marks won't leak into volume series
+	// 先在蜡烛图序列打标，避免标记污染成交量序列
 	ek.MarkPatterns()
+
+	// Overlay volume bars on secondary axis
+	// 在副轴叠加成交量柱状图
+	volumeBar := charts.NewBar()
+	volumeBar.SetXAxis(x).AddSeries("Volume", volume,
+		charts.WithBarChartOpts(opts.BarChart{
+			XAxisIndex: 1,
+			YAxisIndex: 1,
+		}),
+	)
+	ek.Kline.Overlap(volumeBar)
 }
 
 // RenderToFile renders the chart to an HTML file
