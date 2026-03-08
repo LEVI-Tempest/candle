@@ -1,1 +1,21 @@
 .idea/
+
+# OS / Editor
+.DS_Store
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Build artifacts
+candle
+candle_hk100
+hk100
+
+# Generated charts / reports
+test_*.html
+*_chart.html
+港股通100股_*.html
+docs/港股通100股_*.html
