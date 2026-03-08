@@ -13,10 +13,11 @@ import (
 )
 
 // TsanghiExchange 交易所代码 | Exchange code
-// XSHE = 深圳, XSHG = 上海
+// XSHE = 深圳, XSHG = 上海, XHKG = 香港
 const (
 	TsanghiXSHE = "XSHE" // 深圳 | Shenzhen
 	TsanghiXSHG = "XSHG" // 上海 | Shanghai
+	TsanghiXHKG = "XHKG" // 香港 | Hong Kong
 )
 
 // TsanghiClient fetches historical daily OHLCV from tsanghi.com
