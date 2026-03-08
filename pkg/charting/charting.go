@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/LEVI-Tempest/Candle/pkg/identify"
@@ -379,6 +380,7 @@ type Point struct {
 type EnhancedKline struct {
 	*charts.Kline
 	Patterns          []Pattern                     // Detected patterns (识别出的形态)
+	VolumeSignals     []identify.VolumePriceSignal  // Volume-price signals (量价信号)
 	Indicators        map[string][]float64          // Technical indicators (技术指标)
 	TrendLines        []TrendLine                   // Trend lines (趋势线)
 	SupportResistance []Level                       // Support and resistance levels (支撑阻力位)
@@ -429,6 +431,7 @@ func NewEnhancedKline() *EnhancedKline {
 	return &EnhancedKline{
 		Kline:             charts.NewKLine(),
 		Patterns:          make([]Pattern, 0),
+		VolumeSignals:     make([]identify.VolumePriceSignal, 0),
 		Indicators:        make(map[string][]float64),
 		TrendLines:        make([]TrendLine, 0),
 		SupportResistance: make([]Level, 0),
@@ -462,6 +465,17 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 				Type:     "Doji",
 				Position: i,
 				Strength: 0.7,
+				Risk:     0.5,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+
+		if identify.LongLeggedDoji(candle) {
+			patterns = append(patterns, Pattern{
+				Type:     "Long-Legged Doji",
+				Position: i,
+				Strength: 0.85,
 				Risk:     0.5,
 				Price:    ek.Data[i].Close,
 				Time:     timestamp,
@@ -517,6 +531,26 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 				Type:     "Marubozu",
 				Position: i,
 				Strength: 0.9,
+				Risk:     0.2,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+		if identify.WhiteMarubozu(candle) {
+			patterns = append(patterns, Pattern{
+				Type:     "White Marubozu",
+				Position: i,
+				Strength: 0.95,
+				Risk:     0.2,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+		if identify.BlackMarubozu(candle) {
+			patterns = append(patterns, Pattern{
+				Type:     "Black Marubozu",
+				Position: i,
+				Strength: 0.95,
 				Risk:     0.2,
 				Price:    ek.Data[i].Close,
 				Time:     timestamp,
@@ -710,6 +744,26 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 				Time:     timestamp,
 			})
 		}
+		if identify.MorningDojiStar(candles) {
+			patterns = append(patterns, Pattern{
+				Type:     "Morning Doji Star",
+				Position: i,
+				Strength: 0.98,
+				Risk:     0.1,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+		if identify.EveningDojiStar(candles) {
+			patterns = append(patterns, Pattern{
+				Type:     "Evening Doji Star",
+				Position: i,
+				Strength: 0.98,
+				Risk:     0.1,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
 
 		if identify.ThreeWhiteSoldiers(candles) {
 			patterns = append(patterns, Pattern{
@@ -765,6 +819,9 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 	}
 
 	ek.Patterns = patterns
+	// Analyze volume-price signals after pattern detection
+	// 形态识别后补充量价信号分析
+	ek.VolumeSignals = identify.AnalyzeVolumePriceSignals(ek.Data, 5)
 }
 
 // MarkPatterns marks detected patterns on the chart
@@ -774,34 +831,27 @@ func (ek *EnhancedKline) MarkPatterns() {
 		return
 	}
 
-	// Create precise coordinate mark points for each detected pattern
-	// 为每个检测到的形态创建精确坐标标记点
-	markPointData := make([]opts.MarkPointNameCoordItem, 0, len(ek.Patterns))
-	positionCount := make(map[int]int)
+	// Create precise coordinate mark points (limit to top 10 for readability)
+	// 为检测到的形态创建精确坐标标记，最多 10 个以减轻拥挤
+	displayPatterns := getDisplayPatterns(ek.Patterns, 0.85)
+	if len(displayPatterns) > 10 {
+		displayPatterns = displayPatterns[:10]
+	}
+	markPointData := make([]opts.MarkPointNameCoordItem, 0, len(displayPatterns))
 
-	for _, pattern := range ek.Patterns {
-		// Show only higher-confidence patterns to keep chart readable
-		// 仅展示高置信度形态，避免图表过度拥挤
-		if pattern.Strength < 0.8 {
-			continue
-		}
+	for _, pattern := range displayPatterns {
 		if pattern.Position < 0 || pattern.Position >= len(ek.Data) {
 			continue
 		}
 
 		date := time.Unix(ek.Data[pattern.Position].Timestamp, 0).Format("2006-01-02")
-		level := positionCount[pattern.Position]
-		positionCount[pattern.Position]++
-
-		// Lift labels slightly to avoid overlap when multiple patterns appear on one candle
-		// 同一根K线出现多个形态时，轻微抬高标签避免重叠
-		offsetFactor := 1.005 + float64(level)*0.008
+		offsetFactor := 1.004
 
 		markPointData = append(markPointData, opts.MarkPointNameCoordItem{
-			Name:       fmt.Sprintf("%s %s (%.1f)", getPatternDirectionTag(pattern.Type), pattern.Type, pattern.Strength),
+			Name:       fmt.Sprintf("%s %s", getPatternDirectionTag(pattern.Type), getPatternShortName(pattern.Type)),
 			Coordinate: []interface{}{date, pattern.Price * offsetFactor},
 			Value:      fmt.Sprintf("%.2f", pattern.Price),
-			Symbol:     "circle",
+			Symbol:     getDirectionSymbol(pattern.Type),
 			SymbolSize: 10,
 			ItemStyle: &opts.ItemStyle{
 				Color:       getPatternColor(pattern.Type),
@@ -822,7 +872,7 @@ func (ek *EnhancedKline) MarkPatterns() {
 					Show:      opts.Bool(true),
 					Position:  "top",
 					FontSize:  9,
-					Color:     "#111111",
+					Color:     "#222222",
 					Formatter: "{b}",
 				},
 			}),
@@ -835,16 +885,18 @@ func (ek *EnhancedKline) MarkPatterns() {
 func getPatternColor(patternType string) string {
 	switch patternType {
 	// Bullish patterns (看涨形态)
-	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers",
-		"Dragonfly Doji", "Bullish Harami", "Rising Three Methods":
+	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Morning Doji Star",
+		"Three White Soldiers", "Dragonfly Doji", "Bullish Harami", "Rising Three Methods", "White Marubozu":
 		return "#00da3c" // Green
 	// Bearish patterns (看跌形态)
-	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows",
-		"Gravestone Doji", "Bearish Harami", "Falling Three Methods":
+	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Evening Doji Star",
+		"Three Black Crows", "Gravestone Doji", "Bearish Harami", "Falling Three Methods", "Black Marubozu":
 		return "#ec0000" // Red
 	// Neutral/Reversal patterns (中性/反转形态)
 	case "Doji", "Spinning Top", "Tweezer Tops", "Tweezer Bottoms":
 		return "#ffaa00" // Orange
+	case "Long-Legged Doji":
+		return "#ff8800" // Deep Orange
 	// Gap patterns (缺口形态)
 	case "Rising Window", "Falling Window":
 		return "#0066cc" // Blue
@@ -861,16 +913,18 @@ func getPatternColor(patternType string) string {
 func getPatternSymbol(patternType string) string {
 	switch patternType {
 	// Bullish patterns (看涨形态)
-	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers",
-		"Dragonfly Doji", "Bullish Harami", "Rising Three Methods":
+	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Morning Doji Star",
+		"Three White Soldiers", "Dragonfly Doji", "Bullish Harami", "Rising Three Methods", "White Marubozu":
 		return "triangle" // Triangle pointing up
 	// Bearish patterns (看跌形态)
-	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows",
-		"Gravestone Doji", "Bearish Harami", "Falling Three Methods":
+	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Evening Doji Star",
+		"Three Black Crows", "Gravestone Doji", "Bearish Harami", "Falling Three Methods", "Black Marubozu":
 		return "triangleDown" // Triangle pointing down
 	// Neutral/Reversal patterns (中性/反转形态)
 	case "Doji", "Spinning Top":
 		return "diamond" // Diamond
+	case "Long-Legged Doji":
+		return "circle"
 	// Support/Resistance patterns (支撑/阻力形态)
 	case "Tweezer Tops", "Tweezer Bottoms":
 		return "rect" // Rectangle
@@ -890,16 +944,109 @@ func getPatternSymbol(patternType string) string {
 func getPatternDirectionTag(patternType string) string {
 	switch patternType {
 	// Bullish patterns (看涨形态)
-	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers",
-		"Dragonfly Doji", "Bullish Harami", "Rising Three Methods", "Rising Window":
+	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Morning Doji Star",
+		"Three White Soldiers", "Dragonfly Doji", "Bullish Harami", "Rising Three Methods", "Rising Window", "White Marubozu":
 		return "↑看涨"
 	// Bearish patterns (看跌形态)
-	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows",
-		"Gravestone Doji", "Bearish Harami", "Falling Three Methods", "Falling Window":
+	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Evening Doji Star",
+		"Three Black Crows", "Gravestone Doji", "Bearish Harami", "Falling Three Methods", "Falling Window", "Black Marubozu":
 		return "↓看跌"
 	default:
 		return "→中性"
 	}
+}
+
+func getDirectionSymbol(patternType string) string {
+	switch getPatternDirectionTag(patternType) {
+	case "↑看涨":
+		return "triangle"
+	case "↓看跌":
+		return "triangleDown"
+	default:
+		return "circle"
+	}
+}
+
+func getPatternShortName(patternType string) string {
+	switch patternType {
+	case "Doji":
+		return "十字星"
+	case "Dragonfly Doji":
+		return "蜻蜓十字"
+	case "Gravestone Doji":
+		return "墓碑十字"
+	case "Spinning Top":
+		return "纺锤线"
+	case "Morning Star":
+		return "晨星"
+	case "Evening Star":
+		return "暮星"
+	case "Morning Doji Star":
+		return "晨十字星"
+	case "Evening Doji Star":
+		return "暮十字星"
+	case "Hammer":
+		return "锤头"
+	case "Hanging Man":
+		return "上吊线"
+	case "Inverted Hammer":
+		return "倒锤头"
+	case "Shooting Star":
+		return "流星"
+	case "Three White Soldiers":
+		return "三白兵"
+	case "Three Black Crows":
+		return "三黑鸦"
+	case "Bullish Engulfing":
+		return "看涨吞没"
+	case "Bearish Engulfing":
+		return "看跌吞没"
+	case "Piercing Line":
+		return "刺透"
+	case "Dark Cloud Cover":
+		return "乌云盖顶"
+	case "Bullish Harami":
+		return "看涨孕线"
+	case "Bearish Harami":
+		return "看跌孕线"
+	case "Rising Three Methods":
+		return "上升三法"
+	case "Falling Three Methods":
+		return "下降三法"
+	case "Rising Window":
+		return "上升窗口"
+	case "Falling Window":
+		return "下降窗口"
+	case "White Marubozu":
+		return "光头阳线"
+	case "Black Marubozu":
+		return "光头阴线"
+	case "Long-Legged Doji":
+		return "长腿十字"
+	default:
+		return patternType
+	}
+}
+
+// getDisplayPatterns keeps one strongest signal per candle for readability.
+// getDisplayPatterns 为每根K线只保留一个最强信号，提升可读性。
+func getDisplayPatterns(patterns []Pattern, minStrength float64) []Pattern {
+	bestByPos := make(map[int]Pattern)
+	for _, p := range patterns {
+		if p.Strength < minStrength {
+			continue
+		}
+		old, ok := bestByPos[p.Position]
+		if !ok || p.Strength > old.Strength {
+			bestByPos[p.Position] = p
+		}
+	}
+	out := make([]Pattern, 0, len(bestByPos))
+	for _, p := range bestByPos {
+		out = append(out, p)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Position < out[j].Position })
+	return out
 }
 
 // CreateChart creates and configures the candlestick chart with patterns
@@ -914,6 +1061,8 @@ func (ek *EnhancedKline) CreateChart(title string) {
 	x := make([]string, len(ek.Data))
 	y := make([]opts.KlineData, len(ek.Data))
 	volume := make([]opts.BarData, len(ek.Data))
+	volMA5 := make([]opts.LineData, len(ek.Data))
+	volMA10 := make([]opts.LineData, len(ek.Data))
 
 	for i, candle := range ek.Data {
 		x[i] = time.Unix(candle.Timestamp, 0).Format("2006-01-02")
@@ -930,6 +1079,8 @@ func (ek *EnhancedKline) CreateChart(title string) {
 				Color: volumeColor,
 			},
 		}
+		volMA5[i] = opts.LineData{Value: movingAvgVolumeAt(ek.Data, i, 5)}
+		volMA10[i] = opts.LineData{Value: movingAvgVolumeAt(ek.Data, i, 10)}
 	}
 
 	// Create dedicated lower panel for volume (xAxis[1], yAxis[1])
@@ -956,16 +1107,14 @@ func (ek *EnhancedKline) CreateChart(title string) {
 
 	// Configure chart options
 	// 配置图表选项
-	displayPatternCount := 0
-	for _, pattern := range ek.Patterns {
-		if pattern.Strength >= 0.8 {
-			displayPatternCount++
-		}
+	displayPatterns := getDisplayPatterns(ek.Patterns, 0.85)
+	if len(displayPatterns) > 10 {
+		displayPatterns = displayPatterns[:10]
 	}
 	ek.Kline.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{
 			Title:    title,
-			Subtitle: fmt.Sprintf("Detected %d patterns | Shown %d (>=0.8)", len(ek.Patterns), displayPatternCount),
+			Subtitle: fmt.Sprintf("Detected %d patterns, showing %d | 点击图例可切换 Volume/VOL MA5/VOL MA10", len(ek.Patterns), len(displayPatterns)),
 		}),
 		charts.WithXAxisOpts(opts.XAxis{
 			SplitNumber: 20,
@@ -1008,7 +1157,11 @@ func (ek *EnhancedKline) CreateChart(title string) {
 			Trigger: "axis",
 		}),
 		charts.WithLegendOpts(opts.Legend{
-			Show: opts.Bool(true),
+			Show:         opts.Bool(true),
+			SelectedMode: "multiple",
+			Data:         []string{"Volume", "VOL MA5", "VOL MA10"},
+			Top:          "3%",
+			Right:        "3%",
 		}),
 	)
 
@@ -1030,6 +1183,26 @@ func (ek *EnhancedKline) CreateChart(title string) {
 		}),
 	)
 	ek.Kline.Overlap(volumeBar)
+
+	// Overlay volume moving averages on volume panel
+	// 在成交量面板叠加均量线
+	volLine := charts.NewLine()
+	volLine.SetXAxis(x).
+		AddSeries("VOL MA5", volMA5,
+			charts.WithLineChartOpts(opts.LineChart{
+				XAxisIndex: 1,
+				YAxisIndex: 1,
+			}),
+			charts.WithLineStyleOpts(opts.LineStyle{Width: 1}),
+		).
+		AddSeries("VOL MA10", volMA10,
+			charts.WithLineChartOpts(opts.LineChart{
+				XAxisIndex: 1,
+				YAxisIndex: 1,
+			}),
+			charts.WithLineStyleOpts(opts.LineStyle{Width: 1}),
+		)
+	ek.Kline.Overlap(volLine)
 }
 
 // RenderToFile renders the chart to an HTML file
@@ -1052,4 +1225,24 @@ func (ek *EnhancedKline) GetPatternSummary() map[string]int {
 		summary[pattern.Type]++
 	}
 	return summary
+}
+
+func movingAvgVolumeAt(data []identify.CandlestickWrapper, idx, n int) float64 {
+	if n <= 0 || idx < 0 || len(data) == 0 {
+		return 0
+	}
+	start := idx - n + 1
+	if start < 0 {
+		start = 0
+	}
+	sum := 0.0
+	count := 0
+	for i := start; i <= idx; i++ {
+		sum += data[i].Volume
+		count++
+	}
+	if count == 0 {
+		return 0
+	}
+	return sum / float64(count)
 }

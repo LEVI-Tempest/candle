@@ -1,4 +1,0 @@
-# 港股通 100 股 - AkShare 脚本依赖
-# HK100 AkShare script dependencies
-akshare>=1.12.0
-pandas>=1.5.0

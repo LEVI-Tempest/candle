@@ -56,6 +56,42 @@ func Doji(cs []CandlestickWrapper) bool {
 	return upperShadow > 0.2*math.Abs(c.High-c.Low) && lowerShadow > 0.2*math.Abs(c.High-c.Low) // Adjust 0.2 as needed
 }
 
+// LongLeggedDoji
+// 长腿十字星
+// 1. Very small body (open and close are very close)
+// 2. Both upper and lower shadows are long
+// 3. Total shadow length dominates the full range
+// Note: Typically indicates strong indecision and potential turning point.
+func LongLeggedDoji(cs []CandlestickWrapper) bool {
+	if len(cs) < 1 {
+		return false
+	}
+	c := cs[0]
+	totalRange := c.High - c.Low
+	if totalRange <= 0 {
+		return false
+	}
+
+	body := c.Body()
+	upperShadow := c.UpperShadow()
+	lowerShadow := c.LowerShadow()
+
+	// Very small body relative to range
+	bodyRatio := body / totalRange
+	if bodyRatio > 0.08 {
+		return false
+	}
+
+	// Both shadows should be meaningful and long
+	if upperShadow/totalRange < 0.3 || lowerShadow/totalRange < 0.3 {
+		return false
+	}
+
+	// Shadows should dominate the whole candle
+	shadowDominance := (upperShadow + lowerShadow) / totalRange
+	return shadowDominance > 0.85
+}
+
 // Marubozu (Bullish and Bearish)
 // 光头光脚 (阳线和阴线)
 // 1. No upper shadow or very small upper shadow
@@ -72,6 +108,24 @@ func Marubozu(cs []CandlestickWrapper) bool {
 	tolerance := 0.01 * body // Allow for very small shadows
 
 	return upperShadow <= tolerance && lowerShadow <= tolerance
+}
+
+// WhiteMarubozu
+// 光头光脚阳线
+func WhiteMarubozu(cs []CandlestickWrapper) bool {
+	if len(cs) < 1 {
+		return false
+	}
+	return Marubozu(cs) && cs[0].IsBullish()
+}
+
+// BlackMarubozu
+// 光头光脚阴线
+func BlackMarubozu(cs []CandlestickWrapper) bool {
+	if len(cs) < 1 {
+		return false
+	}
+	return Marubozu(cs) && cs[0].IsBearish()
 }
 
 // Hammer
@@ -290,6 +344,40 @@ func EveningStar(cs []CandlestickWrapper) bool {
 	bodySecond := math.Abs(second.Open - second.Close)
 	rangeSecond := second.High - second.Low
 	return bodySecond <= 0.3*rangeSecond // Second candle has a small body (adjust 0.3 as needed)
+}
+
+// MorningDojiStar
+// 早晨十字星
+func MorningDojiStar(cs []CandlestickWrapper) bool {
+	if len(cs) < 3 {
+		return false
+	}
+	first := cs[2]
+	second := cs[1]
+	third := cs[0]
+	if !first.IsBearish() || !third.IsBullish() {
+		return false
+	}
+	// 第二根需为十字星，且整体结构满足启明星
+	// Doji as middle candle and still satisfy morning star structure
+	return Doji([]CandlestickWrapper{second}) && MorningStar(cs)
+}
+
+// EveningDojiStar
+// 黄昏十字星
+func EveningDojiStar(cs []CandlestickWrapper) bool {
+	if len(cs) < 3 {
+		return false
+	}
+	first := cs[2]
+	second := cs[1]
+	third := cs[0]
+	if !first.IsBullish() || !third.IsBearish() {
+		return false
+	}
+	// 第二根需为十字星，且整体结构满足黄昏之星
+	// Doji as middle candle and still satisfy evening star structure
+	return Doji([]CandlestickWrapper{second}) && EveningStar(cs)
 }
 
 // ThreeWhiteSoldiers
@@ -552,10 +640,10 @@ func RisingThreeMethods(cs []CandlestickWrapper) bool {
 	for _, c := range []CandlestickWrapper{c2, c3, c4} {
 		if !c.IsBearish() {
 			return false
-	}
+		}
 		if c.High > first.High || c.Low < first.Low {
 			return false
-	}
+		}
 		if c.Body() > 0.5*firstBody {
 			return false
 		}
@@ -589,10 +677,10 @@ func FallingThreeMethods(cs []CandlestickWrapper) bool {
 	for _, c := range []CandlestickWrapper{c2, c3, c4} {
 		if !c.IsBullish() {
 			return false
-	}
+		}
 		if c.High > first.High || c.Low < first.Low {
 			return false
-	}
+		}
 		if c.Body() > 0.5*firstBody {
 			return false
 		}
