@@ -544,6 +544,28 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 				Time:     timestamp,
 			})
 		}
+
+		if identify.DragonflyDoji(candle) {
+			patterns = append(patterns, Pattern{
+				Type:     "Dragonfly Doji",
+				Position: i,
+				Strength: 0.8,
+				Risk:     0.4,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+
+		if identify.GravestoneDoji(candle) {
+			patterns = append(patterns, Pattern{
+				Type:     "Gravestone Doji",
+				Position: i,
+				Strength: 0.8,
+				Risk:     0.5,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
 	}
 
 	// Two candlestick patterns (双根K线形态)
@@ -638,6 +660,28 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 				Time:     timestamp,
 			})
 		}
+
+		if identify.BullishHarami(candles) {
+			patterns = append(patterns, Pattern{
+				Type:     "Bullish Harami",
+				Position: i,
+				Strength: 0.8,
+				Risk:     0.3,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+
+		if identify.BearishHarami(candles) {
+			patterns = append(patterns, Pattern{
+				Type:     "Bearish Harami",
+				Position: i,
+				Strength: 0.8,
+				Risk:     0.3,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
 	}
 
 	// Three candlestick patterns (三根K线形态)
@@ -690,6 +734,36 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 		}
 	}
 
+	// Five candlestick patterns (五根K线形态)
+	for i := 4; i < len(ek.Data); i++ {
+		candles := []identify.CandlestickWrapper{
+			ek.Data[i], ek.Data[i-1], ek.Data[i-2], ek.Data[i-3], ek.Data[i-4],
+		}
+		timestamp := time.Unix(ek.Data[i].Timestamp, 0).Format("2006-01-02 15:04:05")
+
+		if identify.RisingThreeMethods(candles) {
+			patterns = append(patterns, Pattern{
+				Type:     "Rising Three Methods",
+				Position: i,
+				Strength: 0.9,
+				Risk:     0.2,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+
+		if identify.FallingThreeMethods(candles) {
+			patterns = append(patterns, Pattern{
+				Type:     "Falling Three Methods",
+				Position: i,
+				Strength: 0.9,
+				Risk:     0.2,
+				Price:    ek.Data[i].Close,
+				Time:     timestamp,
+			})
+		}
+	}
+
 	ek.Patterns = patterns
 }
 
@@ -732,10 +806,12 @@ func (ek *EnhancedKline) MarkPatterns() {
 func getPatternColor(patternType string) string {
 	switch patternType {
 	// Bullish patterns (看涨形态)
-	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers":
+	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers",
+		"Dragonfly Doji", "Bullish Harami", "Rising Three Methods":
 		return "#00da3c" // Green
 	// Bearish patterns (看跌形态)
-	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows":
+	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows",
+		"Gravestone Doji", "Bearish Harami", "Falling Three Methods":
 		return "#ec0000" // Red
 	// Neutral/Reversal patterns (中性/反转形态)
 	case "Doji", "Spinning Top", "Tweezer Tops", "Tweezer Bottoms":
@@ -756,10 +832,12 @@ func getPatternColor(patternType string) string {
 func getPatternSymbol(patternType string) string {
 	switch patternType {
 	// Bullish patterns (看涨形态)
-	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers":
+	case "Hammer", "Inverted Hammer", "Bullish Engulfing", "Piercing Line", "Morning Star", "Three White Soldiers",
+		"Dragonfly Doji", "Bullish Harami", "Rising Three Methods":
 		return "triangle" // Triangle pointing up
 	// Bearish patterns (看跌形态)
-	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows":
+	case "Hanging Man", "Shooting Star", "Bearish Engulfing", "Dark Cloud Cover", "Evening Star", "Three Black Crows",
+		"Gravestone Doji", "Bearish Harami", "Falling Three Methods":
 		return "triangleDown" // Triangle pointing down
 	// Neutral/Reversal patterns (中性/反转形态)
 	case "Doji", "Spinning Top":

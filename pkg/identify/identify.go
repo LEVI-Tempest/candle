@@ -410,6 +410,196 @@ func RisingWindow(cs []CandlestickWrapper) bool {
 	return first.IsBullish() && second.IsBullish() && second.Low > first.High
 }
 
+// DragonflyDoji
+// 蜻蜓十字星
+// 1. Doji with body at top of range (Open=Close near High)
+// 2. Long lower shadow, no or minimal upper shadow
+// Note: Bullish reversal signal in downtrend
+func DragonflyDoji(cs []CandlestickWrapper) bool {
+	if len(cs) < 1 {
+		return false
+	}
+	c := cs[0]
+	body := c.Body()
+	totalRange := c.High - c.Low
+	upperShadow := c.UpperShadow()
+	lowerShadow := c.LowerShadow()
+
+	if totalRange == 0 {
+		return false
+	}
+	// Small body (<10% of range)
+	if body > 0.1*totalRange {
+		return false
+	}
+	// Upper shadow minimal (<5% of range)
+	if upperShadow > 0.05*totalRange {
+		return false
+	}
+	// Lower shadow significant (>50% of range)
+	return lowerShadow > 0.5*totalRange
+}
+
+// GravestoneDoji
+// 墓碑十字星
+// 1. Doji with body at bottom of range (Open=Close near Low)
+// 2. Long upper shadow, no or minimal lower shadow
+// Note: Bearish reversal signal in uptrend
+func GravestoneDoji(cs []CandlestickWrapper) bool {
+	if len(cs) < 1 {
+		return false
+	}
+	c := cs[0]
+	body := c.Body()
+	totalRange := c.High - c.Low
+	upperShadow := c.UpperShadow()
+	lowerShadow := c.LowerShadow()
+
+	if totalRange == 0 {
+		return false
+	}
+	if body > 0.1*totalRange {
+		return false
+	}
+	if lowerShadow > 0.05*totalRange {
+		return false
+	}
+	return upperShadow > 0.5*totalRange
+}
+
+// BullishHarami
+// 看涨孕线
+// 1. First candle: long bearish body
+// 2. Second candle: small body completely inside first's body
+// Note: Reversal signal in downtrend
+func BullishHarami(cs []CandlestickWrapper) bool {
+	if len(cs) < 2 {
+		return false
+	}
+	first := cs[1]
+	second := cs[0]
+	if !first.IsBearish() || !second.IsBullish() {
+		return false
+	}
+	firstBody := first.Body()
+	secondBody := second.Body()
+	if firstBody < 0.0001 {
+		return false
+	}
+	if secondBody > 0.5*firstBody {
+		return false
+	}
+	// Second candle body completely inside first's body
+	firstHigh := math.Max(first.Open, first.Close)
+	firstLow := math.Min(first.Open, first.Close)
+	secondHigh := math.Max(second.Open, second.Close)
+	secondLow := math.Min(second.Open, second.Close)
+	return secondHigh < firstHigh && secondLow > firstLow
+}
+
+// BearishHarami
+// 看跌孕线
+// 1. First candle: long bullish body
+// 2. Second candle: small body completely inside first's body
+// Note: Reversal signal in uptrend
+func BearishHarami(cs []CandlestickWrapper) bool {
+	if len(cs) < 2 {
+		return false
+	}
+	first := cs[1]
+	second := cs[0]
+	if !first.IsBullish() || !second.IsBearish() {
+		return false
+	}
+	firstBody := first.Body()
+	secondBody := second.Body()
+	if firstBody < 0.0001 {
+		return false
+	}
+	if secondBody > 0.5*firstBody {
+		return false
+	}
+	firstHigh := math.Max(first.Open, first.Close)
+	firstLow := math.Min(first.Open, first.Close)
+	secondHigh := math.Max(second.Open, second.Close)
+	secondLow := math.Min(second.Open, second.Close)
+	return secondHigh < firstHigh && secondLow > firstLow
+}
+
+// RisingThreeMethods
+// 上升三法
+// 1. First: long bullish candle
+// 2. Next 3: small bearish candles inside first's range
+// 3. Fifth: long bullish candle closing above first's high
+func RisingThreeMethods(cs []CandlestickWrapper) bool {
+	if len(cs) < 5 {
+		return false
+	}
+	first := cs[4]
+	c2, c3, c4 := cs[3], cs[2], cs[1]
+	fifth := cs[0]
+
+	if !first.IsBullish() || !fifth.IsBullish() {
+		return false
+	}
+	firstBody := first.Body()
+	firstHigh := math.Max(first.Open, first.Close)
+	totalRange := first.High - first.Low
+	if totalRange < 0.0001 || firstBody < 0.5*totalRange {
+		return false
+	}
+	// c2, c3, c4 should be small and bearish, inside first's range
+	for _, c := range []CandlestickWrapper{c2, c3, c4} {
+		if !c.IsBearish() {
+			return false
+	}
+		if c.High > first.High || c.Low < first.Low {
+			return false
+	}
+		if c.Body() > 0.5*firstBody {
+			return false
+		}
+	}
+	// Fifth candle closes above first's high
+	return fifth.Close > firstHigh
+}
+
+// FallingThreeMethods
+// 下降三法
+// 1. First: long bearish candle
+// 2. Next 3: small bullish candles inside first's range
+// 3. Fifth: long bearish candle closing below first's low
+func FallingThreeMethods(cs []CandlestickWrapper) bool {
+	if len(cs) < 5 {
+		return false
+	}
+	first := cs[4]
+	c2, c3, c4 := cs[3], cs[2], cs[1]
+	fifth := cs[0]
+
+	if !first.IsBearish() || !fifth.IsBearish() {
+		return false
+	}
+	firstBody := first.Body()
+	firstLow := math.Min(first.Open, first.Close)
+	totalRange := first.High - first.Low
+	if totalRange < 0.0001 || firstBody < 0.5*totalRange {
+		return false
+	}
+	for _, c := range []CandlestickWrapper{c2, c3, c4} {
+		if !c.IsBullish() {
+			return false
+	}
+		if c.High > first.High || c.Low < first.Low {
+			return false
+	}
+		if c.Body() > 0.5*firstBody {
+			return false
+		}
+	}
+	return fifth.Close < firstLow
+}
+
 // SpinningTop
 // 纺锤线
 // 1. Small real body (the difference between open and close is small).

@@ -138,18 +138,19 @@ for _, pattern := range chart.Patterns {
 
 ## 📁 示例文件 (Example Files)
 
-### 1. `examples/precise_pattern_markers.go`
+### 1. `main.go`（主程序入口）
+- 运行 `go run main.go` 或 `go build -o candle main.go && ./candle`
+- 支持 `-example chart`（默认）：使用示例数据生成图表
+- 支持 `-example fetch`：从 Tsanghi API 拉取真实数据并生成图表
+- 生成 `candle_chart.html`（可通过 `-output` 指定）
+
+### 2. `examples/precise_pattern_markers.go`
 - 专门展示精确位置标记功能
 - 包含详细的位置信息输出
 - 生成 `precise_pattern_markers.html`
 
-### 2. `examples/simple_chart_with_patterns.go`
-- 简单的使用示例
-- 生成 `simple_chart_with_patterns.html`
-
-### 3. `examples/visual_pattern_demo.go`
-- 高级可视化演示
-- 生成 `visual_pattern_demo.html`
+### 3. `examples/test_markers.go`
+- 形态标记测试示例
 
 ## 🎯 实际效果 (Actual Results)
 
