@@ -1,6 +1,8 @@
 package identify
 
 import (
+	"math"
+
 	v1 "github.com/LEVI-Tempest/Candle/pkg/proto"
 	"github.com/LEVI-Tempest/Candle/pkg/utils"
 )
@@ -83,7 +85,7 @@ func DetermineTrend(cs []CandlestickWrapper, days int) Trend {
 // - Trend: Yang (上升), Yin (下降), or Middle (震荡)
 // - Additional metrics about the trend strength and volatility
 func AnalyzeLongTermTrend(cs []CandlestickWrapper, period int, volatilityThreshold float64) (Trend, map[string]float64) {
-	if len(cs) <= period {
+	if len(cs) < period {
 		return TrendUnknown, nil
 	}
 
@@ -125,9 +127,21 @@ func AnalyzeLongTermTrend(cs []CandlestickWrapper, period int, volatilityThresho
 	metrics["lowPrice"] = lowPrice
 
 	// Calculate volatility (using high-low range as a percentage of average price)
-	// 计算波动性（使用高低范围作为平均价格的百分比）
-	avgPrice := (highPrice + lowPrice) / 2
-	volatility := ((highPrice - lowPrice) / avgPrice) * 100
+	// 计算波动性（使用收盘价标准差占均值百分比，降低极值日对震荡识别的干扰）
+	closeSum := 0.0
+	for _, candle := range analysisData {
+		closeSum += candle.Close
+	}
+	avgClose := closeSum / float64(len(analysisData))
+	varianceSum := 0.0
+	for _, candle := range analysisData {
+		diff := candle.Close - avgClose
+		varianceSum += diff * diff
+	}
+	volatility := 0.0
+	if avgClose != 0 {
+		volatility = (math.Sqrt(varianceSum/float64(len(analysisData))) / avgClose) * 100
+	}
 	metrics["volatility"] = volatility
 
 	// Count rising and falling days
@@ -158,6 +172,10 @@ func AnalyzeLongTermTrend(cs []CandlestickWrapper, period int, volatilityThresho
 	// If volatility is low and price change is minimal, it's a sideways/consolidation pattern
 	// 如果波动性低且价格变化很小，则为横盘/盘整模式
 	if volatility < volatilityThreshold && utils.Abs(priceChangePercent) < volatilityThreshold {
+		trend = TrendMiddle
+	} else if trendStrength < 20 && utils.Abs(priceChangePercent) < volatilityThreshold*1.5 {
+		// Weak directional strength with limited net change is treated as sideways.
+		// 方向强度较弱且净涨跌有限时，视为震荡。
 		trend = TrendMiddle
 	} else if priceChange > 0 && risingDays > fallingDays {
 		trend = TrendYang

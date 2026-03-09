@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -35,7 +38,7 @@ func main() {
 	// 显示检测到的形态
 	fmt.Println("\n📋 Detected Patterns:")
 	for i, pattern := range chart.Patterns {
-		fmt.Printf("%d. %s at position %d, price %.2f, strength %.1f\n", 
+		fmt.Printf("%d. %s at position %d, price %.2f, strength %.1f\n",
 			i+1, pattern.Type, pattern.Position, pattern.Price, pattern.Strength)
 	}
 
@@ -64,21 +67,21 @@ func main() {
 // 创建包含清晰形态的非常简单的测试数据
 func createSimpleTestData() []*v1.Candlestick {
 	baseTime := time.Now().AddDate(0, 0, -10) // 10 days ago
-	
+
 	return []*v1.Candlestick{
 		// Normal candles
 		{Timestamp: baseTime.Unix(), Open: 100, High: 105, Low: 98, Close: 103, Volume: 1000},
 		{Timestamp: baseTime.AddDate(0, 0, 1).Unix(), Open: 103, High: 108, Low: 101, Close: 106, Volume: 1200},
-		
+
 		// Clear Doji pattern
 		{Timestamp: baseTime.AddDate(0, 0, 2).Unix(), Open: 106, High: 110, Low: 102, Close: 106.1, Volume: 800},
-		
+
 		// Clear Hammer pattern
 		{Timestamp: baseTime.AddDate(0, 0, 3).Unix(), Open: 105, High: 107, Low: 90, Close: 106, Volume: 1500},
-		
+
 		// Clear Marubozu pattern
 		{Timestamp: baseTime.AddDate(0, 0, 4).Unix(), Open: 106, High: 120, Low: 106, Close: 120, Volume: 2000},
-		
+
 		// More normal candles
 		{Timestamp: baseTime.AddDate(0, 0, 5).Unix(), Open: 120, High: 125, Low: 118, Close: 123, Volume: 1300},
 		{Timestamp: baseTime.AddDate(0, 0, 6).Unix(), Open: 123, High: 128, Low: 121, Close: 126, Volume: 1400},

@@ -2,7 +2,7 @@ package identify
 
 import (
 	"fmt"
-	
+
 	v1 "github.com/LEVI-Tempest/Candle/pkg/proto"
 	"github.com/go-gota/gota/dataframe"
 	"github.com/go-gota/gota/series"
@@ -42,13 +42,15 @@ func DetermineLongTermTrend(candles []*v1.Candlestick, days int) (Trend, error) 
 		return TrendUnknown, fmt.Errorf("Number of days must be greater than 0 (天数必须大于 0)")
 	}
 
-	// Get closing prices and timestamps for the specified number of days
-	// 获取指定天数内的收盘价和时间戳
+	// Get closing prices and relative time index for the specified number of days.
+	// 获取指定天数内的收盘价和相对时间索引。
 	prices := make([]float64, 0, days)
-	timestamps := make([]float64, 0, days) // Store timestamps as float64 for regression
+	timestamps := make([]float64, 0, days)
 	for i := len(candles) - days; i < len(candles); i++ {
 		prices = append(prices, candles[i].Close)
-		timestamps = append(timestamps, float64(candles[i].Timestamp))
+		// Use relative index to avoid numerical instability from large Unix timestamps.
+		// 使用相对索引，避免 Unix 时间戳过大导致的线性回归数值不稳定。
+		timestamps = append(timestamps, float64(i-(len(candles)-days)))
 	}
 
 	// Use Gota and Gonum for linear regression
@@ -123,9 +125,9 @@ func LinearRegression(df dataframe.DataFrame, xCol, yCol string) (float64, float
 	// 计算权重（这里使用nil表示所有点权重相等）
 	var weights []float64
 
-	// Calculate slope and intercept of the linear regression
-	// 计算线性回归的斜率和截距
-	slope, intercept := stat.LinearRegression(x, y, weights, false)
+	// Gonum returns intercept first, then slope.
+	// Gonum 返回值顺序是截距在前、斜率在后。
+	intercept, slope := stat.LinearRegression(x, y, weights, false)
 
 	// Manually calculate R-squared value
 	// R-squared = 1 - (residual sum of squares / total sum of squares)
