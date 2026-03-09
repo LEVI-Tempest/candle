@@ -1,6 +1,6 @@
 module github.com/LEVI-Tempest/Candle
 
-go 1.23.0
+go 1.23.2
 
 toolchain go1.23.9
 
@@ -8,6 +8,7 @@ require (
 	github.com/go-echarts/go-echarts/v2 v2.5.4
 	github.com/go-gota/gota v0.12.0
 	github.com/go-kratos/kratos/v2 v2.8.4
+	github.com/markcheno/go-talib v0.0.0-20250114000313-ec55a20c902f
 	gonum.org/v1/gonum v0.16.0
 	google.golang.org/protobuf v1.36.5
 )

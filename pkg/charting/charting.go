@@ -381,6 +381,7 @@ type EnhancedKline struct {
 	*charts.Kline
 	Patterns          []Pattern                     // Detected patterns (识别出的形态)
 	VolumeSignals     []identify.VolumePriceSignal  // Volume-price signals (量价信号)
+	Evidences         []identify.PatternEvidence    // Structured pattern evidences (结构化证据)
 	Indicators        map[string][]float64          // Technical indicators (技术指标)
 	TrendLines        []TrendLine                   // Trend lines (趋势线)
 	SupportResistance []Level                       // Support and resistance levels (支撑阻力位)
@@ -432,6 +433,7 @@ func NewEnhancedKline() *EnhancedKline {
 		Kline:             charts.NewKLine(),
 		Patterns:          make([]Pattern, 0),
 		VolumeSignals:     make([]identify.VolumePriceSignal, 0),
+		Evidences:         make([]identify.PatternEvidence, 0),
 		Indicators:        make(map[string][]float64),
 		TrendLines:        make([]TrendLine, 0),
 		SupportResistance: make([]Level, 0),
@@ -822,6 +824,54 @@ func (ek *EnhancedKline) AutoDetectPatterns() {
 	// Analyze volume-price signals after pattern detection
 	// 形态识别后补充量价信号分析
 	ek.VolumeSignals = identify.AnalyzeVolumePriceSignals(ek.Data, 5)
+	ek.Evidences = identify.BuildPatternEvidence(
+		toPatternSignals(ek.Patterns),
+		ek.Data,
+		identify.DefaultEvidenceConfig(),
+	)
+}
+
+func toPatternSignals(patterns []Pattern) []identify.PatternSignal {
+	out := make([]identify.PatternSignal, 0, len(patterns))
+	for _, p := range patterns {
+		out = append(out, identify.PatternSignal{
+			Type:      p.Type,
+			Direction: patternDirection(p.Type),
+			Position:  p.Position,
+			Strength:  p.Strength,
+			Risk:      p.Risk,
+			Price:     p.Price,
+			Time:      p.Time,
+		})
+	}
+	return out
+}
+
+func patternDirection(patternType string) string {
+	switch patternType {
+	case "Hammer",
+		"Inverted Hammer",
+		"Bullish Engulfing",
+		"Piercing Line",
+		"Morning Star",
+		"Three White Soldiers",
+		"Tweezer Bottoms",
+		"Rising Window",
+		"Rising Three Methods":
+		return "bullish"
+	case "Hanging Man",
+		"Shooting Star",
+		"Bearish Engulfing",
+		"Dark Cloud Cover",
+		"Evening Star",
+		"Three Black Crows",
+		"Tweezer Tops",
+		"Falling Window",
+		"Falling Three Methods":
+		return "bearish"
+	default:
+		return "neutral"
+	}
 }
 
 // MarkPatterns marks detected patterns on the chart

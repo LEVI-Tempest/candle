@@ -63,6 +63,9 @@ func TestEnhancedKlineWithPatternRecognition(t *testing.T) {
 	if len(enhancedKline.Patterns) == 0 {
 		t.Error("Expected to detect some patterns, but none were found")
 	}
+	if len(enhancedKline.Evidences) == 0 {
+		t.Error("Expected structured evidences, but none were found")
+	}
 }
 
 func TestPatternColorAndSymbol(t *testing.T) {
