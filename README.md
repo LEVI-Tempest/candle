@@ -21,6 +21,9 @@ Main output fields include:
 - `patterns`, `trend`, `score`
 - `evidence`, `counter_evidence`, `invalid_if`
 
+JSON schema:
+- `docs/signal.schema.json`
+
 # Candlestick charting data
 
 ## refs
