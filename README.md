@@ -4,6 +4,23 @@ Ref: Japanese Candlestick Charting Techniques https://book.douban.com/subject/21
 
 test
 
+## Signal CLI (JSON output)
+
+`cmd/signal` outputs structured signal reports for upper-layer agents.
+
+```bash
+# Offline from file
+go run ./cmd/signal --input ./candles.json --symbol XSHE:300059
+
+# Online fetch from Tsanghi
+go run ./cmd/signal --fetch --exchange XSHE --ticker 300059 --token demo --limit 120
+```
+
+Main output fields include:
+- `symbol`, `as_of`, `source`
+- `patterns`, `trend`, `score`
+- `evidence`, `counter_evidence`, `invalid_if`
+
 # Candlestick charting data
 
 ## refs
