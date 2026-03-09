@@ -14,11 +14,14 @@ go run ./cmd/signal --input ./candles.json --symbol XSHE:300059
 
 # Online fetch from Tsanghi
 go run ./cmd/signal --fetch --exchange XSHE --ticker 300059 --token demo --limit 120
+
+# With config and custom signal log path
+go run ./cmd/signal --input ./candles.json --config ./signal.config.json --log-csv ./data/signal_log.csv
 ```
 
 Main output fields include:
 - `symbol`, `as_of`, `source`
-- `patterns`, `trend`, `score`
+- `patterns`, `trend`, `score`, `decision_score`, `decision_level`
 - `evidence`, `counter_evidence`, `invalid_if`
 
 JSON schema:

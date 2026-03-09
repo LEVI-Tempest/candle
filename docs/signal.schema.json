@@ -10,6 +10,8 @@
     "source",
     "trend",
     "score",
+    "decision_score",
+    "decision_level",
     "patterns",
     "evidence",
     "counter_evidence",
@@ -33,7 +35,7 @@
       "enum": [
         "up",
         "down",
-        "range",
+        "sideway",
         "unknown"
       ]
     },
@@ -41,6 +43,19 @@
       "type": "number",
       "minimum": 0,
       "maximum": 1
+    },
+    "decision_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "decision_level": {
+      "type": "string",
+      "enum": [
+        "strong",
+        "medium",
+        "weak"
+      ]
     },
     "patterns": {
       "type": "array",
@@ -54,7 +69,11 @@
           "strength",
           "risk",
           "price",
-          "time"
+          "time",
+          "volume_state",
+          "decision_score",
+          "decision_level",
+          "reason"
         ],
         "properties": {
           "type": {
@@ -87,6 +106,42 @@
           },
           "time": {
             "type": "string"
+          },
+          "volume_state": {
+            "type": "string",
+            "enum": [
+              "confirm",
+              "neutral",
+              "contradict"
+            ]
+          },
+          "decision_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "decision_level": {
+            "type": "string",
+            "enum": [
+              "strong",
+              "medium",
+              "weak"
+            ]
+          },
+          "reason": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "forward_ret_3": {
+            "type": "number"
+          },
+          "forward_ret_5": {
+            "type": "number"
+          },
+          "forward_ret_10": {
+            "type": "number"
           }
         }
       }
