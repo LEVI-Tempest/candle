@@ -19,3 +19,5 @@ test_*.html
 *_chart.html
 港股通100股_*.html
 docs/港股通100股_*.html
+pkg/charting/*.html
+data/*.csv

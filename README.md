@@ -17,6 +17,9 @@ go run ./cmd/signal --fetch --exchange XSHE --ticker 300059 --token demo --limit
 
 # With config and custom signal log path
 go run ./cmd/signal --input ./candles.json --config ./signal.config.json --log-csv ./data/signal_log.csv
+
+# Validate output against schema at runtime
+go run ./cmd/signal --input ./candles.json --validate-schema --schema ./docs/signal.schema.json
 ```
 
 Main output fields include:
@@ -26,6 +29,9 @@ Main output fields include:
 
 JSON schema:
 - `docs/signal.schema.json`
+
+Config example:
+- `docs/signal.config.example.json`
 
 # Candlestick charting data
 

@@ -2,6 +2,9 @@ package signal
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -57,6 +60,11 @@ func TestBuildReportContainsContractFields(t *testing.T) {
 			t.Fatalf("missing required key: %s", k)
 		}
 	}
+
+	schemaPath := filepath.Join("..", "..", "docs", "signal.schema.json")
+	if err := ValidateReportSchema(report, schemaPath); err != nil {
+		t.Fatalf("schema validation failed: %v", err)
+	}
 }
 
 func TestDetermineTrendByMA20(t *testing.T) {
@@ -78,5 +86,53 @@ func TestDetermineTrendByMA20(t *testing.T) {
 	report := BuildReport("XSHE:000001", "2026-03-09T09:30:00Z", "test", candles, cfg)
 	if report.Trend != "up" {
 		t.Fatalf("expected trend up, got %s", report.Trend)
+	}
+}
+
+func TestBuildReportGoldenSummary(t *testing.T) {
+	base := time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC)
+	candles := []*v1.Candlestick{
+		{Timestamp: base.Unix(), Open: 100, High: 102, Low: 99, Close: 101, Volume: 1000},
+		{Timestamp: base.AddDate(0, 0, 1).Unix(), Open: 101, High: 103, Low: 100, Close: 102, Volume: 1100},
+		{Timestamp: base.AddDate(0, 0, 2).Unix(), Open: 102, High: 103, Low: 98, Close: 99, Volume: 1300},
+		{Timestamp: base.AddDate(0, 0, 3).Unix(), Open: 99, High: 100, Low: 95, Close: 96, Volume: 1500},
+		{Timestamp: base.AddDate(0, 0, 4).Unix(), Open: 96, High: 106, Low: 95, Close: 105, Volume: 2600},
+		{Timestamp: base.AddDate(0, 0, 5).Unix(), Open: 105, High: 108, Low: 103, Close: 107, Volume: 2300},
+		{Timestamp: base.AddDate(0, 0, 6).Unix(), Open: 107, High: 109, Low: 106, Close: 108, Volume: 2200},
+		{Timestamp: base.AddDate(0, 0, 7).Unix(), Open: 108, High: 109, Low: 103, Close: 104, Volume: 1800},
+		{Timestamp: base.AddDate(0, 0, 8).Unix(), Open: 104, High: 105, Low: 100, Close: 101, Volume: 1700},
+		{Timestamp: base.AddDate(0, 0, 9).Unix(), Open: 101, High: 102, Low: 98, Close: 99, Volume: 1600},
+	}
+	report := BuildReport("XSHE:300059", "2026-03-09T09:30:00Z", "golden", candles, DefaultConfig())
+
+	type goldenSummary struct {
+		Trend         string  `json:"trend"`
+		Score         float64 `json:"score"`
+		DecisionScore float64 `json:"decision_score"`
+		DecisionLevel string  `json:"decision_level"`
+		PatternsCount int     `json:"patterns_count"`
+		EvidenceCount int     `json:"evidence_count"`
+	}
+	summary := goldenSummary{
+		Trend:         report.Trend,
+		Score:         report.Score,
+		DecisionScore: report.DecisionScore,
+		DecisionLevel: report.DecisionLevel,
+		PatternsCount: len(report.Patterns),
+		EvidenceCount: len(report.Evidence),
+	}
+
+	got, err := json.MarshalIndent(summary, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal summary failed: %v", err)
+	}
+
+	goldenPath := filepath.Join("testdata", "report_golden_summary.json")
+	want, err := os.ReadFile(goldenPath)
+	if err != nil {
+		t.Fatalf("read golden file failed: %v", err)
+	}
+	if strings.TrimSpace(string(got)) != strings.TrimSpace(string(want)) {
+		t.Fatalf("golden mismatch\nwant:\n%s\n\ngot:\n%s", string(want), string(got))
 	}
 }

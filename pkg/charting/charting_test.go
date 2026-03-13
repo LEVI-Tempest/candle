@@ -8,7 +8,9 @@ import (
 )
 
 func Test_Example(t *testing.T) {
-	KlineExamples{}.Examples()
+	if err := (KlineExamples{}).Examples(); err != nil {
+		t.Fatalf("examples render failed: %v", err)
+	}
 }
 
 func TestEnhancedKlineWithPatternRecognition(t *testing.T) {

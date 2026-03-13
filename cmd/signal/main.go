@@ -23,6 +23,8 @@ func main() {
 	outputPath := flag.String("output", "", "Output JSON file path. Empty prints to stdout.")
 	configPath := flag.String("config", "", "Signal config JSON path.")
 	logCSVPath := flag.String("log-csv", "", "Override signal log CSV path.")
+	validateSchema := flag.Bool("validate-schema", false, "Validate output against JSON schema before printing.")
+	schemaPath := flag.String("schema", "docs/signal.schema.json", "Path to JSON schema used with --validate-schema.")
 
 	asOf := flag.String("as-of", time.Now().Format(time.RFC3339), "As-of timestamp (RFC3339).")
 	symbol := flag.String("symbol", "XSHE:300059", "Symbol for reporting context.")
@@ -54,6 +56,11 @@ func main() {
 	}
 
 	report := signal.BuildReport(*symbol, *asOf, source, candles, cfg)
+	if *validateSchema {
+		if err := signal.ValidateReportSchema(report, *schemaPath); err != nil {
+			exitf("schema validation failed: %v", err)
+		}
+	}
 	if err := signal.AppendSignalLogCSV(cfg.LogCSVPath, report); err != nil {
 		exitf("append signal log failed: %v", err)
 	}

@@ -307,7 +307,7 @@ func klineStyle() *charts.Kline {
 
 type KlineExamples struct{}
 
-func (KlineExamples) Examples() {
+func (KlineExamples) Examples() error {
 	page := components.NewPage()
 	page.AddCharts(
 		klineBase(),
@@ -319,10 +319,10 @@ func (KlineExamples) Examples() {
 
 	f, err := os.Create("kline.html")
 	if err != nil {
-		panic(err)
+		return err
 
 	}
-	page.Render(io.MultiWriter(f))
+	return page.Render(io.MultiWriter(f))
 }
 
 // Enhanced Kline Chart with Pattern Recognition

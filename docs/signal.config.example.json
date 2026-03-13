@@ -1,0 +1,23 @@
+{
+  "trend": {
+    "period": 20
+  },
+  "score": {
+    "pattern_weight": 60,
+    "trend_weight": 20,
+    "volume_weight": 20,
+    "strong_threshold": 80,
+    "medium_threshold": 60
+  },
+  "evidence": {
+    "volume_lookback": 10,
+    "mfi_period": 14,
+    "cmf_period": 20,
+    "volume_boost_threshold": 1.5,
+    "volume_shrink_threshold": 0.8,
+    "base_weight": 0.55,
+    "context_weight": 0.2,
+    "volume_weight": 0.25
+  },
+  "log_csv_path": "data/signal_log.csv"
+}

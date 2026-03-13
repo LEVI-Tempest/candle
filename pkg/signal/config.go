@@ -2,6 +2,8 @@ package signal
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -57,6 +59,9 @@ func DefaultConfig() Config {
 func LoadConfig(path string) (Config, error) {
 	cfg := DefaultConfig()
 	if path == "" {
+		if err := validateConfig(cfg); err != nil {
+			return Config{}, err
+		}
 		return cfg, nil
 	}
 
@@ -70,6 +75,9 @@ func LoadConfig(path string) (Config, error) {
 		return Config{}, err
 	}
 	mergeConfig(&cfg, &userCfg)
+	if err := validateConfig(cfg); err != nil {
+		return Config{}, err
+	}
 	return cfg, nil
 }
 
@@ -122,4 +130,27 @@ func mergeConfig(dst, src *Config) {
 	if src.LogCSVPath != "" {
 		dst.LogCSVPath = src.LogCSVPath
 	}
+}
+
+func validateConfig(cfg Config) error {
+	if cfg.Trend.Period < 2 {
+		return fmt.Errorf("trend.period must be >= 2")
+	}
+	totalWeight := cfg.Score.PatternWeight + cfg.Score.TrendWeight + cfg.Score.VolumeWeight
+	if math.Abs(totalWeight-100) > 1e-9 {
+		return fmt.Errorf("score weights must sum to 100, got %.2f", totalWeight)
+	}
+	if cfg.Score.StrongThreshold < cfg.Score.MediumThreshold {
+		return fmt.Errorf("strong_threshold must be >= medium_threshold")
+	}
+	if cfg.Score.StrongThreshold > 100 || cfg.Score.StrongThreshold < 0 {
+		return fmt.Errorf("strong_threshold must be within [0,100]")
+	}
+	if cfg.Score.MediumThreshold > 100 || cfg.Score.MediumThreshold < 0 {
+		return fmt.Errorf("medium_threshold must be within [0,100]")
+	}
+	if cfg.Evidence.BaseWeight+cfg.Evidence.ContextWeight+cfg.Evidence.VolumeWeight <= 0 {
+		return fmt.Errorf("evidence weights sum must be > 0")
+	}
+	return nil
 }
