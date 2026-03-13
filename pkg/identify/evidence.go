@@ -43,14 +43,24 @@ type PatternEvidence struct {
 // EvidenceConfig controls scoring weights and thresholds.
 // EvidenceConfig 控制评分权重和阈值。
 type EvidenceConfig struct {
-	VolumeLookback        int
-	MFIPeriod             int
-	CMFPeriod             int
-	VolumeBoostThreshold  float64
-	VolumeShrinkThreshold float64
-	BaseWeight            float64
-	ContextWeight         float64
-	VolumeWeight          float64
+	VolumeLookback        int     `json:"volume_lookback"`
+	MFIPeriod             int     `json:"mfi_period"`
+	CMFPeriod             int     `json:"cmf_period"`
+	BeiliangThreshold     float64 `json:"beiliang_threshold"`
+	VolumeBoostThreshold  float64 `json:"volume_boost_threshold"`
+	VolumeShrinkThreshold float64 `json:"volume_shrink_threshold"`
+	BaseWeight            float64 `json:"base_weight"`
+	ContextWeight         float64 `json:"context_weight"`
+	VolumeWeight          float64 `json:"volume_weight"`
+	// ContextWindow is the candlestick lookback for trend context scoring (default 9).
+	// ContextWindow 是趋势上下文评分的回望窗口（默认 9）。
+	ContextWindow int `json:"context_window"`
+	// ContextTrendThreshold is the minimum angle/slope for a valid trend (default 3.0).
+	// ContextTrendThreshold 是判断有效趋势的最小斜率阈值（默认 3.0）。
+	ContextTrendThreshold float64 `json:"context_trend_threshold"`
+	// OBVDivergenceLookback is the candlestick lookback for OBV divergence check (default 5).
+	// OBVDivergenceLookback 是 OBV 背离检测的回望窗口（默认 5）。
+	OBVDivergenceLookback int `json:"obv_divergence_lookback"`
 }
 
 // DefaultEvidenceConfig returns a conservative default config.
@@ -60,10 +70,14 @@ func DefaultEvidenceConfig() EvidenceConfig {
 		VolumeLookback:        10,
 		MFIPeriod:             14,
 		CMFPeriod:             20,
+		BeiliangThreshold:     1.5,
 		VolumeBoostThreshold:  1.5,
 		VolumeShrinkThreshold: 0.8,
 		BaseWeight:            0.55,
 		ContextWeight:         0.20,
 		VolumeWeight:          0.25,
+		ContextWindow:         9,
+		ContextTrendThreshold: 3.0,
+		OBVDivergenceLookback: 5,
 	}
 }

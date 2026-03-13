@@ -111,6 +111,9 @@ func mergeConfig(dst, src *Config) {
 	if src.Evidence.CMFPeriod > 0 {
 		dst.Evidence.CMFPeriod = src.Evidence.CMFPeriod
 	}
+	if src.Evidence.BeiliangThreshold > 0 {
+		dst.Evidence.BeiliangThreshold = src.Evidence.BeiliangThreshold
+	}
 	if src.Evidence.VolumeBoostThreshold > 0 {
 		dst.Evidence.VolumeBoostThreshold = src.Evidence.VolumeBoostThreshold
 	}
@@ -125,6 +128,15 @@ func mergeConfig(dst, src *Config) {
 	}
 	if src.Evidence.VolumeWeight > 0 {
 		dst.Evidence.VolumeWeight = src.Evidence.VolumeWeight
+	}
+	if src.Evidence.ContextWindow > 0 {
+		dst.Evidence.ContextWindow = src.Evidence.ContextWindow
+	}
+	if src.Evidence.ContextTrendThreshold > 0 {
+		dst.Evidence.ContextTrendThreshold = src.Evidence.ContextTrendThreshold
+	}
+	if src.Evidence.OBVDivergenceLookback > 0 {
+		dst.Evidence.OBVDivergenceLookback = src.Evidence.OBVDivergenceLookback
 	}
 
 	if src.LogCSVPath != "" {
@@ -151,6 +163,9 @@ func validateConfig(cfg Config) error {
 	}
 	if cfg.Evidence.BaseWeight+cfg.Evidence.ContextWeight+cfg.Evidence.VolumeWeight <= 0 {
 		return fmt.Errorf("evidence weights sum must be > 0")
+	}
+	if cfg.Evidence.BeiliangThreshold <= 0 {
+		return fmt.Errorf("evidence.beiliang_threshold must be > 0")
 	}
 	return nil
 }

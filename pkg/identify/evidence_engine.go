@@ -29,7 +29,7 @@ func BuildPatternEvidence(
 			BaseStrength: clamp01(p.Strength),
 		}
 
-		contextScore, ctxFactors := scoreContext(candles, p)
+		contextScore, ctxFactors := scoreContext(candles, p, cfg)
 		volumeScore, volFactors, contradictions := scoreVolume(candles, ind, p, cfg)
 
 		finalScore := ev.BaseStrength*cfg.BaseWeight +
@@ -50,7 +50,7 @@ func BuildPatternEvidence(
 	return out
 }
 
-func scoreContext(cs []CandlestickWrapper, p PatternSignal) (float64, []FactorHit) {
+func scoreContext(cs []CandlestickWrapper, p PatternSignal, cfg EvidenceConfig) (float64, []FactorHit) {
 	factors := make([]FactorHit, 0, 2)
 	if p.Position < 3 {
 		factors = append(factors, FactorHit{
@@ -63,11 +63,15 @@ func scoreContext(cs []CandlestickWrapper, p PatternSignal) (float64, []FactorHi
 		return 0.4, factors
 	}
 
-	start := p.Position - 9
+	window := cfg.ContextWindow
+	if window < 3 {
+		window = 9
+	}
+	start := p.Position - window
 	if start < 0 {
 		start = 0
 	}
-	trend, metrics := AnalyzeLongTermTrend(cs[start:p.Position+1], p.Position-start+1, 3.0)
+	trend, metrics := AnalyzeLongTermTrend(cs[start:p.Position+1], p.Position-start+1, cfg.ContextTrendThreshold)
 	score := 0.5
 
 	if metrics != nil {
@@ -122,17 +126,29 @@ func scoreVolume(
 	if avgVol > 0 {
 		volRatio = c.Volume / avgVol
 	}
-	volBoost := volRatio >= cfg.VolumeBoostThreshold
+	beiliangThreshold := cfg.BeiliangThreshold
+	if beiliangThreshold <= 0 {
+		beiliangThreshold = cfg.VolumeBoostThreshold
+	}
+	volBoost := volRatio >= beiliangThreshold
 	factors = append(factors, FactorHit{
-		Name:      "volume_ratio",
+		Name:      "beiliang_confirm",
 		Value:     volRatio,
-		Threshold: cfg.VolumeBoostThreshold,
+		Threshold: beiliangThreshold,
 		Passed:    volBoost,
-		Reason:    "volume / moving average volume",
+		Reason:    "volume / ma_volume_n reaches beiliang threshold",
 	})
 	if volBoost {
 		score += 0.25
 	}
+
+	factors = append(factors, FactorHit{
+		Name:      "volume_ratio",
+		Value:     volRatio,
+		Threshold: 1,
+		Passed:    volRatio >= 1,
+		Reason:    "raw volume ratio for audit and tuning",
+	})
 
 	lowVol := avgVol > 0 && volRatio <= cfg.VolumeShrinkThreshold
 	factors = append(factors, FactorHit{
@@ -176,7 +192,7 @@ func scoreVolume(
 		score += 0.10
 	}
 
-	obvContradiction := detectOBVDivergence(cs, ind.OBV, i, p.Direction)
+	obvContradiction := detectOBVDivergence(cs, ind.OBV, i, p.Direction, cfg.OBVDivergenceLookback)
 	if obvContradiction != "" {
 		contradictions = append(contradictions, obvContradiction)
 	}
@@ -184,8 +200,10 @@ func scoreVolume(
 	return clamp01(score), factors, contradictions
 }
 
-func detectOBVDivergence(cs []CandlestickWrapper, obv []float64, i int, direction string) string {
-	lookback := 5
+func detectOBVDivergence(cs []CandlestickWrapper, obv []float64, i int, direction string, lookback int) string {
+	if lookback < 1 {
+		lookback = 5
+	}
 	start := i - lookback
 	if start < 0 || len(obv) <= i {
 		return ""

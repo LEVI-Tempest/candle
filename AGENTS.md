@@ -102,3 +102,4 @@ Scope: this file applies to the entire `candle/` repository.
 ## Git workflow
 
 - 提交代码时，`git commit` 的 message 必须使用英文。
+- 所有提交标题与正文都应使用英文，避免中英混写，便于后续 GitHub 历史检索与自动化处理。

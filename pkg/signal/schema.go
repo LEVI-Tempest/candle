@@ -3,6 +3,7 @@ package signal
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -25,9 +26,10 @@ func ValidateReportSchema(report Report, schemaPath string) error {
 		return nil
 	}
 
-	msg := "schema validation failed"
-	if len(result.Errors()) > 0 {
-		msg = fmt.Sprintf("%s: %s", msg, result.Errors()[0].String())
+	errs := result.Errors()
+	msgs := make([]string, 0, len(errs))
+	for _, e := range errs {
+		msgs = append(msgs, e.String())
 	}
-	return fmt.Errorf(msg)
+	return fmt.Errorf("schema validation failed: %s", strings.Join(msgs, "; "))
 }

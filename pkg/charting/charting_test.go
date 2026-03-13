@@ -1,9 +1,11 @@
 package charting
 
 import (
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/LEVI-Tempest/Candle/pkg/identify"
 	v1 "github.com/LEVI-Tempest/Candle/pkg/proto"
 )
 
@@ -97,6 +99,28 @@ func TestPatternColorAndSymbol(t *testing.T) {
 		if symbol != tc.expectedSymbol {
 			t.Errorf("Pattern %s: expected symbol %s, got %s", tc.patternType, tc.expectedSymbol, symbol)
 		}
+	}
+}
+
+func TestFormatPatternLabelIncludesScoreAndReasons(t *testing.T) {
+	ev := identify.PatternEvidence{
+		PatternType: "Hammer",
+		FinalScore:  0.84,
+		VolumeFactors: []identify.FactorHit{
+			{Name: "beiliang_confirm", Passed: true},
+			{Name: "mfi_regime", Passed: true},
+		},
+	}
+
+	label := formatPatternLabel("Hammer", ev)
+	if !strings.Contains(label, "锤头") {
+		t.Fatalf("label missing pattern name: %s", label)
+	}
+	if !strings.Contains(label, "84") {
+		t.Fatalf("label missing score: %s", label)
+	}
+	if !strings.Contains(label, "beiliang_confirm") || !strings.Contains(label, "mfi_regime") {
+		t.Fatalf("label missing reasons: %s", label)
 	}
 }
 

@@ -13,6 +13,7 @@
     "volume_lookback": 10,
     "mfi_period": 14,
     "cmf_period": 20,
+    "beiliang_threshold": 1.5,
     "volume_boost_threshold": 1.5,
     "volume_shrink_threshold": 0.8,
     "base_weight": 0.55,

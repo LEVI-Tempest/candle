@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/LEVI-Tempest/Candle/pkg/charting"
 	"github.com/LEVI-Tempest/Candle/pkg/identify"
@@ -36,7 +37,7 @@ func BuildReport(symbol, asOf, source string, candles []*v1.Candlestick, cfg Con
 		return evidence[i].FinalScore > evidence[j].FinalScore
 	})
 
-	trend := determineTrendByMA20(ek.Data, cfg.Trend.Period)
+	trend := determineTrendByMA(ek.Data, cfg.Trend.Period)
 	patternReports := make([]PatternReport, 0, len(ek.Patterns))
 	evidenceByKey := make(map[string]identify.PatternEvidence, len(evidence))
 	for _, ev := range evidence {
@@ -78,14 +79,15 @@ func BuildReport(symbol, asOf, source string, candles []*v1.Candlestick, cfg Con
 		return patternReports[i].DecisionScore > patternReports[j].DecisionScore
 	})
 
+	topScore := topDecisionScore(patternReports)
 	return Report{
 		Symbol:          symbol,
 		AsOf:            asOf,
 		Source:          source,
 		Trend:           trend,
 		Score:           normalizedScore(patternReports),
-		DecisionScore:   topDecisionScore(patternReports),
-		DecisionLevel:   decisionLevel(topDecisionScore(patternReports), cfg.Score.StrongThreshold, cfg.Score.MediumThreshold),
+		DecisionScore:   topScore,
+		DecisionLevel:   decisionLevel(topScore, cfg.Score.StrongThreshold, cfg.Score.MediumThreshold),
 		Patterns:        patternReports,
 		Evidence:        evidence,
 		CounterEvidence: collectCounterEvidence(evidence),
@@ -142,7 +144,7 @@ func AppendSignalLogCSV(path string, report Report) error {
 			formatFloatPtr(p.ForwardRet3),
 			formatFloatPtr(p.ForwardRet5),
 			formatFloatPtr(p.ForwardRet10),
-			stringsJoin(p.Reason, " | "),
+			strings.Join(p.Reason, " | "),
 		}
 		if err := w.Write(row); err != nil {
 			return err
@@ -168,7 +170,9 @@ func toPatternSignals(patterns []charting.Pattern) []identify.PatternSignal {
 	return out
 }
 
-func determineTrendByMA20(cs []identify.CandlestickWrapper, period int) string {
+// determineTrendByMA determines trend direction using a configurable MA period (default 20).
+// determineTrendByMA 使用可配置 MA 周期（默认 20）判断趋势方向。
+func determineTrendByMA(cs []identify.CandlestickWrapper, period int) string {
 	if period < 2 {
 		period = 20
 	}
@@ -392,15 +396,4 @@ func formatFloatPtr(v *float64) string {
 		return ""
 	}
 	return fmt.Sprintf("%.4f", *v)
-}
-
-func stringsJoin(parts []string, sep string) string {
-	if len(parts) == 0 {
-		return ""
-	}
-	out := parts[0]
-	for i := 1; i < len(parts); i++ {
-		out += sep + parts[i]
-	}
-	return out
 }

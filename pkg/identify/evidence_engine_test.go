@@ -46,4 +46,16 @@ func TestBuildPatternEvidence(t *testing.T) {
 	if len(ev.VolumeFactors) == 0 {
 		t.Fatal("expected volume factors to be populated")
 	}
+	foundBeiliang := false
+	for _, factor := range ev.VolumeFactors {
+		if factor.Name == "beiliang_confirm" {
+			foundBeiliang = true
+			if !factor.Passed {
+				t.Fatalf("expected beiliang_confirm to pass, got %+v", factor)
+			}
+		}
+	}
+	if !foundBeiliang {
+		t.Fatal("expected beiliang_confirm factor to be present")
+	}
 }

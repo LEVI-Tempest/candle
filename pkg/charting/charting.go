@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/LEVI-Tempest/Candle/pkg/identify"
@@ -888,6 +889,10 @@ func (ek *EnhancedKline) MarkPatterns() {
 		displayPatterns = displayPatterns[:10]
 	}
 	markPointData := make([]opts.MarkPointNameCoordItem, 0, len(displayPatterns))
+	evidenceByKey := make(map[string]identify.PatternEvidence, len(ek.Evidences))
+	for _, ev := range ek.Evidences {
+		evidenceByKey[evidenceKey(ev.PatternType, ev.Position)] = ev
+	}
 
 	for _, pattern := range displayPatterns {
 		if pattern.Position < 0 || pattern.Position >= len(ek.Data) {
@@ -897,8 +902,13 @@ func (ek *EnhancedKline) MarkPatterns() {
 		date := time.Unix(ek.Data[pattern.Position].Timestamp, 0).Format("2006-01-02")
 		offsetFactor := 1.004
 
+		label := fmt.Sprintf("%s %s", getPatternDirectionTag(pattern.Type), getPatternShortName(pattern.Type))
+		if ev, ok := evidenceByKey[evidenceKey(pattern.Type, pattern.Position)]; ok {
+			label = formatPatternLabel(pattern.Type, ev)
+		}
+
 		markPointData = append(markPointData, opts.MarkPointNameCoordItem{
-			Name:       fmt.Sprintf("%s %s", getPatternDirectionTag(pattern.Type), getPatternShortName(pattern.Type)),
+			Name:       label,
 			Coordinate: []interface{}{date, pattern.Price * offsetFactor},
 			Value:      fmt.Sprintf("%.2f", pattern.Price),
 			Symbol:     getDirectionSymbol(pattern.Type),
@@ -928,6 +938,54 @@ func (ek *EnhancedKline) MarkPatterns() {
 			}),
 		)
 	}
+}
+
+func evidenceKey(patternType string, position int) string {
+	return fmt.Sprintf("%s#%d", patternType, position)
+}
+
+func formatPatternLabel(patternType string, ev identify.PatternEvidence) string {
+	reasons := topEvidenceReasons(ev, 2)
+	if len(reasons) == 0 {
+		return fmt.Sprintf("%s %s | %.0f", getPatternDirectionTag(patternType), getPatternShortName(patternType), ev.FinalScore*100)
+	}
+	return fmt.Sprintf(
+		"%s %s | %.0f | %s",
+		getPatternDirectionTag(patternType),
+		getPatternShortName(patternType),
+		ev.FinalScore*100,
+		strings.Join(reasons, ", "),
+	)
+}
+
+func topEvidenceReasons(ev identify.PatternEvidence, limit int) []string {
+	if limit <= 0 {
+		return nil
+	}
+	reasons := make([]string, 0, limit)
+	for _, factor := range ev.VolumeFactors {
+		if factor.Passed {
+			reasons = append(reasons, factor.Name)
+			if len(reasons) == limit {
+				return reasons
+			}
+		}
+	}
+	for _, factor := range ev.ContextFactors {
+		if factor.Passed {
+			reasons = append(reasons, factor.Name)
+			if len(reasons) == limit {
+				return reasons
+			}
+		}
+	}
+	for _, contradiction := range ev.ContradictionFactors {
+		reasons = append(reasons, contradiction)
+		if len(reasons) == limit {
+			return reasons
+		}
+	}
+	return reasons
 }
 
 // getPatternColor returns the color for a specific pattern type
